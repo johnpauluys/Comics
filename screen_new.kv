@@ -280,14 +280,14 @@
                             text: 'Add'
                             on_press: root.add_annuals(_editions_container, _edition_name_text, _first_annual_text, _last_annual_text); _edition_name_text.focus = True
                 FieldBox:
-                    height: dp(150)
+                    height: dp(100)
                     FieldLabel:
-                        height: dp(150)
+                        height: dp(100)
                         valign: 'top'
                         text: 'Notes'
                     TextInput:
                         id: _notes_text
-                        height: dp(150)
+                        height: dp(100)
                         multiline: True
                         on_text: root.data['notes'] = self.text.strip() if self.text else None
                         on_text_validate: _issue_number_text.focus = True if not self.text else False
