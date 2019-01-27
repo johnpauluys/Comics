@@ -10,7 +10,7 @@
 
 <Label>:
     color: .6,.6,.6,1
-    font_size: sp(20)
+    font_size: sp(18)
     font_name: 'fonts/LinLibertine_R.ttf'
     size_hint: None, 1
     size: self.texture_size
@@ -22,7 +22,7 @@
     min_state_time: 0.15
     size_hint: None, 1
     size: self.texture_size
-    font_size: sp(18)
+    font_size: sp(16)
     padding: dp(10), 0
 
 <ToggleButton>:
@@ -38,7 +38,7 @@
     size_hint_y: 1
     text_size: self.width, None
     valign: 'center'
-    font_size: sp(16)
+    font_size: sp(15)
     multiline: False
     write_tab: False
     # prevent user from typing non numeric characters
@@ -79,12 +79,12 @@
     height: dp(32)
 
 <FieldLabel>:
-    font_size: sp(19)
+    font_size: sp(15)
     text_size: self.width, self.height
     halign: 'right'
     valign: 'center'
-    size_hint: .3, None
-    height: dp(30)
+    size_hint: .3, 1
+    #height: dp(30)
     shorten: True
     shorten_from: 'right'
 
@@ -137,7 +137,8 @@
     disabled_color: .2, .2, .2, .5
     size_hint: 1, None
     height: dp(20)
-    font_size: sp(18)
+    valign: 'center'
+    font_size: sp(12)
     allow_no_selection: False
 
 <OtherEditionBox>:
