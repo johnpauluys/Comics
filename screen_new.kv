@@ -61,8 +61,8 @@
                             on_state: root.publisher_count += 1 if self.state == 'down' else -1
                             on_release: _title_text.focus = True if root.publisher_count else False
                             on_release: _other_publisher_text.focus = True if not root.publisher_count and _other_publisher_toggle.state == 'down' and _other_publisher_text else False
-#                        Label:
-#                            width: (_publisher_images.width - (_dc_toggle.width + _marvel_toggle.width + _dark_horse_toggle.width + _image_toggle.width)) / 4
+                        Label:
+                            width: (_publisher_images.width - (_dc_toggle.width + _marvel_toggle.width + _dark_horse_toggle.width + _image_toggle.width)) / 4
                         ToggleButton:
                             id: _marvel_toggle
                             publisher: 'marvel'
@@ -75,8 +75,8 @@
                             on_state: root.publisher_count += 1 if self.state == 'down' else -1
                             on_release: _title_text.focus = True if root.publisher_count else False
                             on_release: _other_publisher_text.focus = True if not root.publisher_count and _other_publisher_toggle.state == 'down' and _other_publisher_text else False
-#                        Label:
-#                            width: (_publisher_images.width - (_dc_toggle.width + _marvel_toggle.width + _dark_horse_toggle.width + _image_toggle.width)) / 4
+                        Label:
+                            width: (_publisher_images.width - (_dc_toggle.width + _marvel_toggle.width + _dark_horse_toggle.width + _image_toggle.width)) / 4
                         ToggleButton:
                             id: _dark_horse_toggle
                             publisher: 'dark_horse'
@@ -89,8 +89,8 @@
                             on_state: root.publisher_count += 1 if self.state == 'down' else -1
                             on_release: _title_text.focus = True if root.publisher_count else False
                             on_release: _other_publisher_text.focus = True if not root.publisher_count and _other_publisher_toggle.state == 'down' and _other_publisher_text else False
-#                        Label:
-#                            width: (_publisher_images.width - (_dc_toggle.width + _marvel_toggle.width + _dark_horse_toggle.width + _image_toggle.width)) / 4
+                        Label:
+                            width: (_publisher_images.width - (_dc_toggle.width + _marvel_toggle.width + _dark_horse_toggle.width + _image_toggle.width)) / 4
                         ToggleButton:
                             id: _image_toggle
                             publisher: 'image'
