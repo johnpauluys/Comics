@@ -63,7 +63,6 @@
 <ScreenButton@Button>:
     on_release: self.parent._root.manager.load_screen(self.text)
 
-
 <ScreenTitle@Label>
     size_hint: 1, None
     font_size: sp(25)
@@ -71,7 +70,7 @@
 <ScreenContainer@BoxLayout>:
     orientation: 'horizontal'
     size_hint: 1, None
-    padding: dp(10)
+    padding: 0
 
 <FieldBox>:
     orientation: 'horizontal'
@@ -132,13 +131,12 @@
     padding: dp(5), 0
 
 <IssueToggleButton>:
+    font_size: sp(15)
     background_color: .2, .2, .2, 1
     color: (.5, .5, .5, 1) if self.state == 'normal' else (.2, .7, .9, 1)
     disabled_color: .2, .2, .2, .5
     size_hint: 1, None
-    height: dp(20)
-    valign: 'center'
-    font_size: sp(12)
+    #valign:'center'
     allow_no_selection: False
 
 <OtherEditionBox>:
