@@ -108,7 +108,7 @@
                     FieldBox:
                         ToggleButton:
                             id: _other_publisher_toggle
-                            size_hint: None, None
+                            size_hint: None, 1
                             width: _dc_toggle.width
                             color: .3, .3, .3, 1
                             background_color: 0,0,0,.2
@@ -158,7 +158,8 @@
                     FieldBox:
                         TextInput:
                             id: _pre_issues_text
-                            size_hint_x: .8
+                            size_hint_x: None
+                            width: _start_date_text.width
                             #hint_text: "eg. -1.5, -1.25, -1, 0"
                             on_text: root.data['pre_issues'] = self.text.strip() if self.text and not _issues_text.text else None
                             on_text_validate: _issues_text.focus = True
@@ -210,7 +211,8 @@
                         FieldBox:
                             TextInput:
                                 id: _edition_name_text
-                                size_hint_x: .55
+                                size_hint_x: None
+                                width: _start_date_text.width
                                 on_text: self.foreground_color = (1, 0, 0, 1) if self.text in root.other_editions_data else (.2, .7, .9, 1)
                                 on_text: _annuals_box.opacity = 1 if 'annual' in self.text.lower().strip() else 0
                                 on_text_validate: _notes_text.focus = True if not self.text else False
@@ -224,7 +226,7 @@
                                 disabled: False if _annuals_box.disabled else True
                                 FieldLabel:
                                     id: _edition_issues_label
-                                    text: 'no. of issues'
+                                    text: 'Issues'
                                 TextInput:
                                     id: _edition_issues_text
                                     text_validate_unfocus: False
@@ -359,7 +361,7 @@
                     spacing: dp(2)
                     cols: 10
         BoxLayout:
-            size_hint: .6, 1
+            size_hint: .5, 1
             FieldBox:
                 Label:
                     id: _editions_label
