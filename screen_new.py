@@ -231,9 +231,6 @@ class ScreenNew(ComicsScreen):
             print('No comic title entered')
         elif not self.issues_text.text:
             print('No total issues amount entered')
-        elif not self.start_date_text.text:
-            print('No run date entered')
-        # TODO work on some date validation
         elif self.edition_name_text.text:
             print("Other editions field still has some text. Did you forget to click 'Add'")
         elif not self.compare_issues_to_owned_issues():

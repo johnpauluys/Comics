@@ -95,7 +95,7 @@ class ComicsApp(App):
                             'pre_issues' TEXT,
                             'owned_issues' TEXT NOT NULL,
                             'other_editions' TEXT, 
-                            'start_date' TEXT NOT NULL,
+                            'start_date' TEXT,
                             'end_date' TEXT,
                             'notes' TEXT,
                             'issue_notes' TEXT)""".format(publisher.replace(" ", "_")))
