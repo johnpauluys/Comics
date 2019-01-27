@@ -103,23 +103,23 @@
                             on_state: root.publisher_count += 1 if self.state == 'down' else -1
                             on_release: _title_text.focus = True if root.publisher_count else False
                             on_release: _other_publisher_text.focus = True if not root.publisher_count and _other_publisher_toggle.state == 'down' and _other_publisher_text else False
+                FieldBox:
+                    FieldLabel:
+                    FieldBox:
                         ToggleButton:
                             id: _other_publisher_toggle
-                            size_hint: 1, None
-                            font_size: sp(35)
+                            size_hint: None, None
+                            width: _dc_toggle.width
                             color: .3, .3, .3, 1
-                            valign: 'bottom'
                             background_color: 0,0,0,.2
                             on_state: self.color =  (.2, .7, .9, 1) if self.state == 'down' else (.3, .3, .3, 1)
                             text: 'Other'
                             on_release: _other_publisher_text.focus = True if self.state == 'down' else False
                             on_release: _title_text.focus = True if self.state == 'normal' and root.publisher_count else False
-                FieldBox:
-                    FieldLabel:
-                    FieldBox:
+
                         PredictiveTextInput:
                             id: _other_publisher_text
-                            hint_text: 'separate multiple publishers with commas'
+                            hint_text: 'separate publishers with commas'
                             opacity: 1 if _other_publisher_toggle.state == 'down' else 0
                             disabled: False if _other_publisher_toggle.state == 'down' else True
                             on_text: self.suggest_text(app, 'Publishers', 'publisher') if self.text else None
