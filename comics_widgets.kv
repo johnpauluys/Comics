@@ -1,0 +1,210 @@
+# comics_widgets.kv
+#: kivy 1.10.1
+
+#    canvas:
+#        Color:
+#            rgba: 0, 1, 0 , .2
+#        Rectangle:
+#            pos: self.pos
+#            size: self.size
+
+<Label>:
+    color: .6,.6,.6,1
+    font_size: sp(20)
+    font_name: 'fonts/LinLibertine_R.ttf'
+    size_hint: None, 1
+    size: self.texture_size
+    padding: dp(5), 0
+
+<Button>:
+    font_name: 'fonts/ComicBook.otf'
+    color: 0,0,0,1 #.8, .8, .85, 1
+    min_state_time: 0.15
+    size_hint: None, 1
+    size: self.texture_size
+    font_size: sp(18)
+    padding: dp(10), 0
+
+<ToggleButton>:
+    color: 0, 0, 0, 1 #.8, .8, .85, 1
+
+<TextInput>:
+    padding_x: sp(10)
+    background_color: .05, .05, .05, 1
+    cursor_color: .2, .7, .9, .6
+    foreground_color: .2, .7, .9, 1
+    hint_text_color: .15,.15,.15,1
+    font_name: 'fonts/ComicBook.otf'
+    size_hint_y: 1
+    text_size: self.width, None
+    valign: 'center'
+    font_size: sp(16)
+    multiline: False
+    write_tab: False
+    # prevent user from typing non numeric characters
+    on_text: self.text = '' if not self.text.isnumeric() and self.input_type == 'number' else self.text
+
+<PredictiveTextInput>:
+    text_validate_unfocus: False
+    on_focus: app.connect_db() if self.focus else app.close_db()
+
+<BoxLayout>:
+    orientation: 'vertical'
+    spacing: dp(5)
+
+<GridLayout>:
+    height: self.minimum_height
+    size_hint_y: None
+
+<ScrollView>
+    size_hint: 1, None
+    scroll_timeout: 1500
+
+<ScreenButton@Button>:
+    on_release: self.parent._root.manager.load_screen(self.text)
+
+
+<ScreenTitle@Label>
+    size_hint: 1, None
+    font_size: sp(25)
+
+<ScreenContainer@BoxLayout>:
+    orientation: 'horizontal'
+    size_hint: 1, None
+    padding: dp(10)
+
+<FieldBox>:
+    orientation: 'horizontal'
+    size_hint: 1, None
+    height: dp(32)
+
+<FieldLabel>:
+    font_size: sp(19)
+    text_size: self.width, self.height
+    halign: 'right'
+    valign: 'center'
+    size_hint: .3, None
+    height: dp(30)
+    shorten: True
+    shorten_from: 'right'
+
+<IssueNumberInput@TextInput>
+    size_hint_x: None
+    width: dp(65)
+
+<IssueNoteBox>:
+    issue_number_label: _issue_number
+    issue_note_label: _issue_note
+    del_btn: _del_btn
+    height: _issue_note.height
+    Label:
+        id: _issue_number
+        font_size: sp(18)
+        text_size: self.size
+        valign: 'top'
+        halign: 'right'
+        width: dp(65)
+    FieldBox:
+        Label:
+            id: _issue_note
+            size_hint: 1, None
+            height: self.texture_size[1]
+            text_size: self.width, None
+            halign: 'left'
+            valign: 'center'
+            font_size: sp(18)
+        InvisiButton:
+            id: _del_btn
+            #text_size: self.size
+            size: self.texture_size
+            valign: 'center'
+            halign: 'right'
+            text: 'x'
+            on_release: root.confirm_delete()
+
+<InvisiButton@Button>:
+    font_name: 'fonts/LinLibertine_R.ttf'
+    font_size: sp(18)
+    background_down: ''
+    background_normal: ''
+    background_color: 0,0,0,0
+    color: .6,.6,.6,1 if self.disabled == False else .2,.2,.2,1
+    padding: dp(5), 0
+
+<IssueToggleButton>:
+    background_color: .2, .2, .2, 1
+    color: (.5, .5, .5, 1) if self.state == 'normal' else (.2, .7, .9, 1)
+    disabled_color: .2, .2, .2, .5
+    size_hint: 1, None
+    height: dp(20)
+    font_size: sp(18)
+    allow_no_selection: False
+
+<OtherEditionBox>:
+    issues_container: _issues_container
+    size_hint_y: None
+    height: self.minimum_height
+    FieldBox:
+        Label:
+            id: _editions_label
+            size_hint_x: 1
+            text_size: self.size
+        InvisiButton:
+            id: _del_btn
+            #text_size: self.size
+            size: self.texture_size
+            valign: 'center'
+            halign: 'right'
+            text: 'x'
+            #on_release: root.confirm_delete()
+            on_release: root.remove_edition()
+    GridLayout:
+        id: _issues_container
+        padding: dp(5)
+        spacing: dp(2)
+        cols: 10
+
+<AnnualsEditionBox>:
+    annuals_container: _annuals_container
+    size_hint_y: None
+    height: self.minimum_height
+    FieldBox:
+        Label:
+            id: _annuals_label
+            size_hint_x: 1
+            text_size: self.width, self.height
+        InvisiButton:
+            id: _del_btn
+            size: self.texture_size
+            valign: 'center'
+            halign: 'right'
+            text: 'x'
+            on_release: root.remove_edition()
+    GridLayout:
+        id: _annuals_container
+        padding: dp(5)
+        spacing: dp(2)
+        cols: 5
+
+<StatusBar>:
+    current_status: _current_status
+    Label:
+        id: _current_status
+        size_hint_x: 1
+
+# for debugging purposes:
+<TestBox>:
+    canvas:
+        Color:
+            rgba: 0, 1, 0 , .2
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+<TestLabel>:
+    canvas:
+        Color:
+            rgba: 0, 0, 1 , .2
+        Rectangle:
+            pos: self.pos
+            size: self.size
