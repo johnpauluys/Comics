@@ -152,6 +152,7 @@
                         width: dp(65)
                         on_text: root.data['volume'] = self.text.strip() if self.text else None
                         on_text_validate: _pre_issues_text.focus = True
+                        # TODO Add Format field
                 FieldBox:
                     FieldLabel:
                         text: "Pre-issues"
@@ -167,7 +168,7 @@
                             default_text: "Enter any uncommon issue numbers, eg. 0, -1, -1.25, -1.5, 2a, 2b, etc., separated by commas."
                             on_focus: _status_bar.set_status(self.default_text) if self.focus else _status_bar.clear_status()
                             on_text: _status_bar.set_status(self.default_text) if self.text else None
-                            on_text: _status_bar.set_status("Typing anything into this field won't have any effect until the Total Issues field isn't changed.", 'important') if self.text and _issues_text.text else None
+                            on_text: _status_bar.set_status("Typing anything into this field won't have any effect until the Total Issues field is changed.", 'important') if self.text and _issues_text.text else None
                         FieldLabel:
                             text: "Total Issues"
                         IssueNumberInput:
@@ -179,6 +180,7 @@
                             on_text_validate: _start_date_text.focus = True if self.text else False
                             # status_bar
                             #TODO handle ongoing series issue eg. 20+
+                            #TODO on text validate reload
                             default_text: "Enter the number of standard issues. "#For ongoing series, enter the last published issue and a plus symbol, eg. \"142+\"."
                             on_focus: _status_bar.set_status(self.default_text) if self.focus else _status_bar.clear_status()
                             on_text: _status_bar.set_status("Make sure to fill out Pre-Issues field (if necessary), before entering anything in this field!", 'important') if self.text and not _pre_issues_text.text else None

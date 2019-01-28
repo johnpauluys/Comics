@@ -63,6 +63,7 @@ class ScreenNew(ComicsScreen):
             elif issue.isalnum() or issue.isalpha():
                 # handle issues like '1a', '1b', etc.
                 strings_list.append(issue)
+                #TODO handles xx / _ issues
             else:
                 # the rest should be floats
                 numbers_list.append(float(issue))
@@ -222,7 +223,7 @@ class ScreenNew(ComicsScreen):
 
     def validate_user_input(self):
         """ Check whether all necessary fields are filled out"""
-
+        # TODO check if owned issues were selected
         if not self.publisher_count and not self.other_publisher_text.text:
             print("No publisher selected / entered")
         elif self.other_publisher_text.current_suggested_word:
