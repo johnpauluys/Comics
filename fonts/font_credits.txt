@@ -1,0 +1,18 @@
+# filename font_credits.txt
+
+Comic Book:
+
+    ComicBook.otf
+        License: Shareware / free to use for personal, non-commercial purposes.
+                    see Font_License.txt
+        URL: https://www.dafont.com/comic-book.font
+        Author: Pixel Sagas (http://www.pixelsagas.com/)
+
+
+Linux Libertine, Biolinum:
+
+    LinLibertine_R.ttf, LinBiolinum_R.ttf
+        License: GNU General Public License version 2.0 (GPLv2), Open Font License 1.1 (OFL 1.1)
+                    see LICENCE.txt, GPL.txt, OFL.txt
+        URL: https://www.dafont.com/linux-libertine.font
+        Author: Philipp H. Poll (http://www.linuxlibertine.org/)
