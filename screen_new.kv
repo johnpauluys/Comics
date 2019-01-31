@@ -2,7 +2,7 @@
 #: import datetime datetime
 
 <ScreenNew>:
-    on_enter: _status_bar.set_status("Start by selecting one or more publisher(s). Try entering data starting from the top, as this screen changes dynamically.")
+    on_enter: _status_bar.set_status("Start by selecting one or more publisher(s).")
     publisher_dc_toggle: _dc_toggle
     publisher_marvel_toggle: _marvel_toggle
     publisher_dark_horse_toggle: _dark_horse_toggle
@@ -14,6 +14,8 @@
     issues_text: _issues_text
     start_date_text: _start_date_text
     end_date_text: _end_date_text
+    special_issue_notes: _special_issue_notes
+    issue_note_container: _issue_note_container
     edition_name_text: _edition_name_text
     edition_issues_text: _edition_issues_text
     status_bar: _status_bar
@@ -23,12 +25,14 @@
         pos_hint: {'top': 1}
         text: "Holger's Comic Collection"
     ScreenContainer:
+        id: _screen_container
         pos: 0, _status_bar.top
         height: root.height - (_screen_title.height + 2 * _status_bar.height)
         disabled: True if _status_bar.screen_disabled else False
 
 # Column 1
         BoxLayout:
+            id: _column1
             BoxLayout:
                 id: _form_box
                 size_hint_y: None
@@ -40,90 +44,93 @@
                             font_size: sp(23)
                             text: "Add a new comic"
                 FieldBox:
-                    height: dp(75)
+                    height: dp(50)
                     FieldLabel:
                         text: "Publisher(s)"
-                        height: dp(75)
+                        height: dp(50)
                         valign: 'bottom'
                     FieldBox:
                         id: _publisher_images
-                        height: dp(75)
+                        spacing: 0
+                        height: dp(50)
                         halign: 'center'
                         ToggleButton:
                             id: _dc_toggle
                             publisher: 'dc'
-                            background_normal: 'images/' + self.publisher + '_normal.jpg'
-                            background_down: 'images/' + self.publisher + '_down.jpg'
-                            background_disabled_normal: 'images/' + self.publisher + '_disabled_normal.jpg'
-                            background_disabled_down: 'images/' + self.publisher + '_disabled_down.jpg'
+                            background_normal: 'images/' + self.publisher + '_normal.png'
+                            background_down: 'images/' + self.publisher + '_down.png'
+                            background_disabled_normal: 'images/' + self.publisher + '_disabled_normal.png'
+                            background_disabled_down: 'images/' + self.publisher + '_disabled_down.png'
                             border: 0, 0, 0, 0
-                            size: dp(75), dp(75)
+                            size: dp(50), dp(50)
                             on_state: root.publisher_count += 1 if self.state == 'down' else -1
                             on_release: _title_text.focus = True if root.publisher_count else False
                             on_release: _other_publisher_text.focus = True if not root.publisher_count and _other_publisher_toggle.state == 'down' and _other_publisher_text else False
                         Label:
-                            width: (_publisher_images.width - (_dc_toggle.width + _marvel_toggle.width + _dark_horse_toggle.width + _image_toggle.width)) / 4
+                            width: (_publisher_images.width - (_dc_toggle.width + _marvel_toggle.width + _dark_horse_toggle.width + _image_toggle.width + _other_publisher_toggle.width)) / 4
                         ToggleButton:
                             id: _marvel_toggle
                             publisher: 'marvel'
-                            background_normal: 'images/' + self.publisher + '_normal.jpg'
-                            background_down: 'images/' + self.publisher + '_down.jpg'
-                            background_disabled_normal: 'images/' + self.publisher + '_disabled_normal.jpg'
-                            background_disabled_down: 'images/' + self.publisher + '_disabled_down.jpg'
+                            background_normal: 'images/' + self.publisher + '_normal.png'
+                            background_down: 'images/' + self.publisher + '_down.png'
+                            background_disabled_normal: 'images/' + self.publisher + '_disabled_normal.png'
+                            background_disabled_down: 'images/' + self.publisher + '_disabled_down.png'
                             border: 0, 0, 0, 0
-                            size: dp(149), dp(75)
+                            size: dp(110), dp(50)
                             on_state: root.publisher_count += 1 if self.state == 'down' else -1
                             on_release: _title_text.focus = True if root.publisher_count else False
                             on_release: _other_publisher_text.focus = True if not root.publisher_count and _other_publisher_toggle.state == 'down' and _other_publisher_text else False
                         Label:
-                            width: (_publisher_images.width - (_dc_toggle.width + _marvel_toggle.width + _dark_horse_toggle.width + _image_toggle.width)) / 4
+                            width: (_publisher_images.width - (_dc_toggle.width + _marvel_toggle.width + _dark_horse_toggle.width + _image_toggle.width + _other_publisher_toggle.width)) / 4
                         ToggleButton:
                             id: _dark_horse_toggle
                             publisher: 'dark_horse'
-                            background_normal: 'images/' + self.publisher + '_normal.jpg'
-                            background_down: 'images/' + self.publisher + '_down.jpg'
-                            background_disabled_normal: 'images/' + self.publisher + '_disabled_normal.jpg'
-                            background_disabled_down: 'images/' + self.publisher + '_disabled_down.jpg'
+                            background_normal: 'images/' + self.publisher + '_normal.png'
+                            background_down: 'images/' + self.publisher + '_down.png'
+                            background_disabled_normal: 'images/' + self.publisher + '_disabled_normal.png'
+                            background_disabled_down: 'images/' + self.publisher + '_disabled_down.png'
                             border: 0, 0, 0, 0
-                            size: dp(56), dp(75)
+                            size: dp(34), dp(50)
                             on_state: root.publisher_count += 1 if self.state == 'down' else -1
                             on_release: _title_text.focus = True if root.publisher_count else False
                             on_release: _other_publisher_text.focus = True if not root.publisher_count and _other_publisher_toggle.state == 'down' and _other_publisher_text else False
                         Label:
-                            width: (_publisher_images.width - (_dc_toggle.width + _marvel_toggle.width + _dark_horse_toggle.width + _image_toggle.width)) / 4
+                            width: (_publisher_images.width - (_dc_toggle.width + _marvel_toggle.width + _dark_horse_toggle.width + _image_toggle.width + _other_publisher_toggle.width)) / 4
                         ToggleButton:
                             id: _image_toggle
                             publisher: 'image'
-                            background_normal: 'images/' + self.publisher + '_normal.jpg'
-                            background_down: 'images/' + self.publisher + '_down.jpg'
-                            background_disabled_normal: 'images/' + self.publisher + '_disabled_normal.jpg'
-                            background_disabled_down: 'images/' + self.publisher + '_disabled_down.jpg'
+                            background_normal: 'images/' + self.publisher + '_normal.png'
+                            background_down: 'images/' + self.publisher + '_down.png'
+                            background_disabled_normal: 'images/' + self.publisher + '_disabled_normal.png'
+                            background_disabled_down: 'images/' + self.publisher + '_disabled_down.png'
                             border: 0, 0, 0, 0
-                            size: dp(43), dp(75)
+                            size: dp(24), dp(50)
                             on_state: root.publisher_count += 1 if self.state == 'down' else -1
                             on_release: _title_text.focus = True if root.publisher_count else False
                             on_release: _other_publisher_text.focus = True if not root.publisher_count and _other_publisher_toggle.state == 'down' and _other_publisher_text else False
-                FieldBox:
-                    FieldLabel:
-                    FieldBox:
+                        Label:
+                            width: (_publisher_images.width - (_dc_toggle.width + _marvel_toggle.width + _dark_horse_toggle.width + _image_toggle.width + _other_publisher_toggle.width)) / 4
                         ToggleButton:
                             id: _other_publisher_toggle
-                            size_hint: None, 1
-                            width: _dc_toggle.width
+                            size_hint: None, None
+                            size: self.texture_size
+                            valign: 'bottom'
                             color: .3, .3, .3, 1
                             background_color: 0,0,0,.2
                             on_state: self.color =  (.2, .7, .9, 1) if self.state == 'down' else (.3, .3, .3, 1)
                             text: 'Other'
                             on_release: _other_publisher_text.focus = True if self.state == 'down' else False
                             on_release: _title_text.focus = True if self.state == 'normal' and root.publisher_count else False
-
+                FieldBox:
+                    FieldLabel:
+                    FieldBox:
                         PredictiveTextInput:
                             id: _other_publisher_text
                             hint_text: 'separate publishers with commas'
                             opacity: 1 if _other_publisher_toggle.state == 'down' else 0
                             disabled: False if _other_publisher_toggle.state == 'down' else True
-                            on_text: self.suggest_text(app, 'Publishers', 'publisher') if self.text else None
-                            on_text: self.current_suggested_word = None if not self.text else self.current_suggested_word
+                            on_text: self.suggest_text(app.db_cursor(), 'PUBLISHERS', 'publisher') if self.text else None
+                            on_text: self.current_suggested_word = '' if not self.text else self.current_suggested_word
                             on_text: root.publisher_text = self.text.strip() if self.text else ''
                             on_text_validate: self.complete_string(ending=', ') if self.current_suggested_word else None
                             on_text_validate: _title_text.focus = True if not self.current_suggested_word and self.text else False
@@ -139,103 +146,121 @@
                     TextInput:
                         id: _title_text
                         text_validate_unfocus: False
-                        on_text: root.data['title'] = self.text.strip() if self.text else None
-                        on_text_validate: _vol_text.focus = True if self.text else False
+                        on_focus: root.data['title'] = self.text
+                        on_text_validate: _format_text.focus = True if self.text else False
                         # status_bar
                         on_focus: _status_bar.set_status("Enter the comic's title.") if self.focus else _status_bar.clear_status()
                 FieldBox:
                     FieldLabel:
-                        text: "Volume #"
-                    TextInput:
-                        id: _vol_text
-                        size_hint_x: None
-                        width: dp(65)
-                        on_text: root.data['volume'] = self.text.strip() if self.text else None
-                        on_text_validate: _pre_issues_text.focus = True
-                        # TODO Add Format field
+                        text: "Format"
+                    FieldBox:
+                        PredictiveTextInput:
+                            id: _format_text
+                            on_text: self.suggest_text(app.db_cursor(), 'FORMATS', 'format') if self.text else None
+                            on_focus: root.data['format'] = self.text
+                            on_text_validate: _vol_text.focus = True if not self.current_suggested_word else False
+                            # status_bar
+                            on_focus: _status_bar.set_status("Enter the format of the standard issues.") if self.focus else _status_bar.clear_status()
+
+                        FieldLabel:
+                            text: "Volume #"
+                        TextInput:
+                            id: _vol_text
+                            size_hint_x: None
+                            width: dp(65)
+                            on_focus: root.data['volume'] = self.text
+                            on_text_validate: _issues_text.focus = True
+                            # status_bar
+                            on_focus: _status_bar.set_status("Enter the volume number, if any.") if self.focus else _status_bar.clear_status()
+
                 FieldBox:
                     FieldLabel:
-                        text: "Pre-issues"
+                        text: "Total issues"
+                    FieldBox:
+                        IssueNumberInput:
+                            # TODO add a loading icon
+                            id: _issues_text
+                            text_validate_unfocus: False
+                            on_focus: root.load_issues(_issues_container, self) if not self.focus and self.text else None
+                            on_text_validate: root.load_issues(_issues_container, self) if self.text else _issues_container.clear_widgets()
+                        #  load_issues() handles focus of _start_date_text
+                            # status_bar
+                            default_text: "Enter the number of standard issues. For ongoing series, enter something like \"142+\". Weird things like \"25-132\" would also work."
+                            on_focus: _status_bar.set_status(self.default_text) if self.focus else _status_bar.clear_status()
+
+                        FieldLabel:
+                            text: "Run dates"
+                        FieldBox:
+                            DateInput:
+                                id: _start_date_text
+                                text_validate_unfocus: False
+                                on_focus: root.data['start_date'] = self.text if self.text and not self.focus else None
+                                on_text_validate: root.data['start_date'] = self.text if self.text else None
+                                # change focus
+                                on_text_validate: _pre_issues_text.focus = True if _end_date_text.disabled else False
+                                on_text_validate: _end_date_text.focus = True if not _end_date_text.disabled else False
+                                # status_bar
+                                default_text: "Enter the date in one of these formats: \"DD/MM/YYYY\", \"MM/YYYY\" or just \"YYYY\"."
+                                on_focus: _status_bar.set_status(self.default_text) if self.focus else _status_bar.clear_status()
+                            FieldLabel:
+                                text: "to"
+                                halign: 'center'
+                                font_size: sp(15)
+                            DateInput:
+                                id: _end_date_text
+                                disabled: True if root.ongoing_series or not _start_date_text.text else False
+                                text: 'disabled' if _issues_text.text.endswith('+') else ''
+                                on_focus: root.data['end_date'] = self.text if self.text and not self.focus else None
+                                on_text_validate: root.data['end_date'] = self.text if self.text else None
+                                # change focus
+                                on_text_validate: _pre_issues_text.focus = True
+                                # status_bar
+                                on_focus: _status_bar.set_status("Leave this field blank for ongoing series, otherwise same format applies as with start date.")
+                FieldBox:
+                    FieldLabel:
+                        text: "Odd issues"
                     FieldBox:
                         TextInput:
                             id: _pre_issues_text
-                            size_hint_x: None
-                            width: _start_date_text.width
-                            #hint_text: "eg. -1.5, -1.25, -1, 0"
-                            on_text: root.data['pre_issues'] = self.text.strip() if self.text and not _issues_text.text else None
-                            on_text_validate: _issues_text.focus = True
-                            # status_bar
-                            default_text: "Enter any uncommon issue numbers, eg. 0, -1, -1.25, -1.5, 2a, 2b, etc., separated by commas."
-                            on_focus: _status_bar.set_status(self.default_text) if self.focus else _status_bar.clear_status()
-                            on_text: _status_bar.set_status(self.default_text) if self.text else None
-                            on_text: _status_bar.set_status("Typing anything into this field won't have any effect until the Total Issues field is changed.", 'important') if self.text and _issues_text.text else None
-                        FieldLabel:
-                            text: "Total Issues"
-                        IssueNumberInput:
-                            id: _issues_text
-                            input_type: 'number'
-                            text_validate_unfocus: False
-                            on_text: root.load_issues(_issues_container, int(self.text), _pre_issues_text.text, root.data) if self.text else _issues_container.clear_widgets()
-                            on_text: root.data['issues_in_run'] = int(self.text) if self.text else None
-                            on_text_validate: _start_date_text.focus = True if self.text else False
-                            # status_bar
-                            #TODO handle ongoing series issue eg. 20+
-                            #TODO on text validate reload
-                            default_text: "Enter the number of standard issues. "#For ongoing series, enter the last published issue and a plus symbol, eg. \"142+\"."
-                            on_focus: _status_bar.set_status(self.default_text) if self.focus else _status_bar.clear_status()
-                            on_text: _status_bar.set_status("Make sure to fill out Pre-Issues field (if necessary), before entering anything in this field!", 'important') if self.text and not _pre_issues_text.text else None
-                            on_text: _status_bar.set_status(self.default_text) if self.text else None
-                FieldBox:
-                    FieldLabel:
-                        text: "Run dates"
-                    FieldBox:
-                        TextInput:
-                            id: _start_date_text
-                            text_validate_unfocus: False
-                            on_text: root.data['start_date'] = self.text if self.text else None
-                            on_text_validate: _end_date_text.focus = True if self.text else False
-                            # status_bar
-                            default_text: "Enter the date in one of these formats: \"DD/MM/YYYY\", \"MM/YYYY\". Wikipedia might be able to help you with unknown dates."
-                            on_focus: _status_bar.set_status(self.default_text) if self.focus else _status_bar.clear_status()
-                        Label:
-                            text: "to"
-                        TextInput:
-                            id: _end_date_text
-                            on_text: root.data['end_date'] = self.text if self.text else None
+                            size_hint_x: 1
+                            on_focus: root.load_issues(_odd_issues_container, self) if self.text and not self.focus else None
+                            on_text_validate: root.load_issues(_odd_issues_container, self.text) if self.text else None
+                            # change focus
                             on_text_validate: _edition_name_text.focus = True
                             # status_bar
-                            #TODO handle empty fields
-                            on_focus: _status_bar.set_status("Leave this field blank for ongoing series, otherwise same format applies as with start date.")
+                            default_text: "Enter any uncommon issue numbers, eg. 0, -1, -1.25, -1.5, etc. For variations enter issue number plus _, eg. 1_, 2_a, 2_b."
+                            on_focus: _status_bar.set_status(self.default_text) if self.focus else _status_bar.clear_status()
                 FieldBox:
                     FieldLabel:
-                        text: 'Other Edition(s)'
+                        text: 'Other edition(s)'
                     FieldBox:
                         FieldBox:
-                            TextInput:
+                            PredictiveTextInput:
                                 id: _edition_name_text
-                                size_hint_x: None
-                                width: _start_date_text.width
+                                size_hint_x: 1
                                 on_text: self.foreground_color = (1, 0, 0, 1) if self.text in root.other_editions_data else (.2, .7, .9, 1)
-                                on_text: _annuals_box.opacity = 1 if 'annual' in self.text.lower().strip() else 0
+                                on_text: self.suggest_text_from_list(['Annuals', 'Specials']) if self.text else None
+                                on_text: _annuals_box.opacity = 1 if 'annual' in self.text.lower() else 0
+                                on_text_validate: self.complete_string(ending='') if self.current_suggested_word else None
+                                on_text_validate: _edition_issues_text.focus = True if self.text and not self.current_suggested_word and not _edition_issues_text.disabled else False
+                                # change focus
                                 on_text_validate: _notes_text.focus = True if not self.text else False
-                                on_text_validate: _edition_issues_text.focus = True if self.text and not _edition_issues_text.disabled else False
-                                on_text_validate: _first_annual_text.focus = True if self.text and _edition_issues_text.disabled else False
+                                on_text_validate: _first_annual_text.focus = True if not self.current_suggested_word and not _first_annual_text.disabled else False
                                 # status_bar
-                                default_text: "Enter something like \"Annuals\" or \"Specials\"into this field. This field can be re-used multiple times after \"Add\" is clicked."
+                                default_text: "Enter something like \"Annuals\" or \"Specials\" into this field. This field can be re-used multiple times after \"Add\" is clicked."
                                 on_focus: _status_bar.set_status(self.default_text) if self.focus else _status_bar.clear_status()
                             FieldBox:
+                                disabled: True if not _edition_name_text.text or 'annuals' in _edition_name_text.text.lower() else False
                                 opacity: 0 if _annuals_box.opacity == 1 else 1
-                                disabled: False if _annuals_box.disabled else True
                                 FieldLabel:
                                     id: _edition_issues_label
                                     text: 'Issues'
                                 TextInput:
                                     id: _edition_issues_text
                                     text_validate_unfocus: False
-                                    disabled: True if _edition_name_text.text == '' else False
                                     size_hint_x: None
                                     width: dp(65)
-                                    on_text_validate: root.add_new_edition(_editions_container, _edition_name_text.text, int(_edition_issues_text.text)) if self.text else None
+                                    on_text_validate: root.add_new_edition(_editions_container, _edition_name_text.text, _edition_issues_text.text) if self.text else None
                                     on_text_validate: _edition_name_text.focus = True if self.text else False
                                     # status_bar
                                     default_2: " and make sure to either click \"Add\" or press ENTER to add " + _edition_name_text.text + " to \"" + _editions_label.text + "\" section."
@@ -251,21 +276,27 @@
                     disabled: True if self.opacity == 0 else False
                     FieldLabel:
                     FieldBox:
-                        Label:
+                        FieldLabel:
+                            id: _annuals_from
                             text: 'from'
+                            halign: 'center'
+                            size_hint_x: 1
                         TextInput:
                             id: _first_annual_text
                             input_type: 'number'
+                            size_hint_x: 1
                             on_text_validate: self.text = '1' if not self.text else self.text; _last_annual_text.focus = True if self.text else False
-
                             # status_bar
                             on_text: _last_annual_text.default_text = _last_annual_text.default_1 if self.text == '1' else _last_annual_text.default_2
                             default_text: "Enter either the first year (\"YYYY\") or leave field blank for numbered annuals."
                             on_focus: _status_bar.set_status(self.default_text) if self.focus else _status_bar.clear_status()
-                        Label:
+                        FieldLabel:
                             text: 'to'
+                            halign: 'center'
+                            size_hint_x: 1
                         TextInput:
                             id: _last_annual_text
+                            size_hint_x: 1
                             input_type: 'number'
                             text_validate_unfocus: False
                             #TODO handle ongoing series
@@ -306,28 +337,36 @@
                             text_validate_unfocus: False
                             size_hint_x: None
                             width: dp(65)
-                            foreground_color: (1, 0, 0, 1) if self.text in root.data['issue_notes'] else (.2, .7, .9, 1)
-                            on_text_validate: _issue_note_text.focus = True if self.text and self.text not in root.data['issue_notes'] else False
+                            foreground_color: (1, 0, 0, 1) if self.text in root.issue_notes else (.2, .7, .9, 1)
+                            on_text_validate: _issue_note_text.focus = True if self.text and self.text not in root.issue_notes else False
+                            on_text_validate: root.focus_special_issue(_special_issue_notes) if _special_issue_notes.children else None
+
+                            #on_text_validate: _special_issue_notes.ids['2_'].focus = True if _special_issue_notes.children else False
                             #TODO check whether issue exists in issues
                             # status_bar
                             default_text: "Enter an issue number." # The issue number has to exist in given issues for this to work."
                             on_focus: _status_bar.set_status(self.default_text) if self.focus else _status_bar.clear_status()
-                        Label:
+                        FieldLabel:
                             text: 'Note'
                         TextInput:
                             id: _issue_note_text
                             text_validate_unfocus: False
                             disabled: False if _issue_number_text.text and _issue_number_text.text not in root.data['issue_notes'] else True
-                            on_text_validate: root.add_issue_note(_issue_note_container, _issue_number_text, _issue_note_text) if self.text else None
+                            on_text_validate: root.add_issue_note(_issue_number_text, self) if self.text else None
+                            #on_text_validate: root.issue_notes[_issue_number_text.] = self.text.strip()
                             # status_bar
                             default_text: "Enter note for issue #" + _issue_number_text.text + " and click \"Add\" or press ENTER to add note to list below the current field."
                             on_focus: _status_bar.set_status(self.default_text) if self.focus else _status_bar.clear_status()
                         Button:
                             disabled: True if _issue_note_text.disabled == True or not _issue_note_text.text or _issue_number_text.text in root.data['issue_notes'] else False
                             text: 'Add'
-                            on_release: root.add_issue_note(_issue_note_container, _issue_number_text, _issue_note_text) if _issue_note_text.text else None
+                            on_release: root.add_issue_note(_issue_number_text, _issue_note_text) if _issue_note_text.text else None
+            BoxLayout:
+                id: _special_issue_notes
+                size_hint: 1, None
+                height: self.minimum_height
             ScrollView:
-                height: self.parent.height - _form_box.height
+                height: self.parent.height - (_form_box.height + _special_issue_notes.height)
                 BoxLayout:
                     id: _issue_note_container
                     status_bar: _status_bar
@@ -337,6 +376,7 @@
 
 # standard issues box starts here
         BoxLayout:
+            id: _column2
             FieldBox:
                 id: _issues_box_title
                 Label:
@@ -347,20 +387,23 @@
                     size_hint_x: None
                     width: self.minimum_width
                     Button:
-                        disabled: False if _issues_container.children else True
+                        disabled: False if _issues_container.children or _odd_issues_container.children else True
                         text: 'all'
                         on_release: root.select_all_issues(_issues_container)
                     Button:
-                        disabled: False if _issues_container.children else True
+                        disabled: False if _issues_container.children or _odd_issues_container.children else True
                         text: 'none'
                         on_release: root. deselect_all_issues(_issues_container)
+                        # TODO update select_all and deselect_all to check odd issues as well
+            GridLayout:
+                id: _odd_issues_container
+                pos:
+                cols: 10
             ScrollView:
-                height: self.parent.height - _issues_box_title.height
+                height: self.parent.height - (_issues_box_title.height + _odd_issues_container.height)
                 GridLayout:
                     id: _issues_container
                     _root: root
-                    padding: dp(5)
-                    spacing: dp(2)
                     cols: 10
         BoxLayout:
             size_hint: .5, 1
@@ -378,6 +421,12 @@
     BoxLayout:
         padding: dp(10)
         FieldBox:
+            canvas:
+                Color:
+                    rgba: 0, 0, 0 , .5
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
             StatusBar:
                 id: _status_bar
             Button:

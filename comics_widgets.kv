@@ -12,7 +12,7 @@
     color: .8,.8,.8,1
     font_size: sp(18)
     font_name: 'fonts/LinLibertine_R.ttf'
-    size_hint: None, 1
+    size_hint: None, None
     size: self.texture_size
     padding: dp(5), 0
 
@@ -29,32 +29,39 @@
     color: 0, 0, 0, 1 #.8, .8, .85, 1
 
 <TextInput>:
-    padding_x: sp(10)
+    #padding_x: sp(10)
     background_color: .05, .05, .05, 1
     cursor_color: .2, .7, .9, .6
     foreground_color: .2, .7, .9, 1
     hint_text_color: .15,.15,.15,1
     font_name: 'fonts/ComicBook.otf'
-    size_hint_y: 1
+    size_hint: 1, 1
     text_size: self.size
     valign: 'center'
     font_size: sp(15)
     multiline: False
     write_tab: False
+    on_focus: self.text = self.text.strip() if self.focus == False else self.text
     # prevent user from typing non numeric characters
-    on_text: self.text = '' if not self.text.isnumeric() and self.input_type == 'number' else self.text
+    on_text: self.text = self.text[:-1] if not self.text.isnumeric() and self.input_type == 'number' else self.text
+
 
 <PredictiveTextInput>:
     text_validate_unfocus: False
-    on_focus: app.connect_db() if self.focus else app.close_db()
+    on_focus: self.suggestion_text = '  '; self.current_suggested_word = ''
+    on_text_validate: self.complete_string() if self.current_suggested_word else None
+    on_text: self.current_suggested_word = '' if not self.text else self.current_suggested_word
 
 <BoxLayout>:
     orientation: 'vertical'
     spacing: dp(5)
 
 <GridLayout>:
-    height: self.minimum_height
     size_hint_y: None
+    height: self.minimum_height
+    padding: dp(5)
+    spacing: dp(2)
+
 
 <ScrollView>
     size_hint: 1, None
@@ -79,32 +86,56 @@
 
 <FieldLabel>:
     font_size: sp(15)
-    text_size: self.width, self.height
+    text_size: self.size
     halign: 'right'
     valign: 'center'
     size_hint: .3, 1
-    #height: dp(30)
     shorten: True
     shorten_from: 'right'
 
-<IssueNumberInput@TextInput>
+<IssueNumberInput>
     size_hint_x: None
     width: dp(65)
 
+<SpecialIssueNoteInputBox>:
+    FieldLabel:
+        id: _issue_code
+        text: root.issue_code
+    FieldBox:
+        TextInput:
+            id: _issue_note_text
+            text_validate_unfocus: False
+            text: root.current_note
+            on_text_validate: root.screen.add_issue_note(_issue_code, self) if self.text else None
+            on_text_validate: root.screen.special_issues.remove(root.issue_code) if self.text else None; root.screen.focus_special_issue(root.container) if self.text else None
+            # status_bar
+            default_text: "Clarify exactly what " + _issue_code.text + "is  and click \"Add\" or press ENTER to add note to issue notes list."
+            on_focus: root.status_bar.set_status(self.default_text) if self.focus else root.status_bar.clear_status()
+        Button:
+            text: 'Add'
+            disabled: True if not _issue_note_text.text else False
+            on_release: root.screen.add_issue_note(_issue_code, _issue_note_text) if _issue_note_text.text.strip() else None
+            on_release: root.screen.special_issues.remove(root.issue_code) if _issue_note_text.text.strip() else None
+            on_release: root.screen.focus_special_issue(root.container) if self.text else None
 <IssueNoteBox>:
+
+
+
     issue_number_label: _issue_number
     issue_note_label: _issue_note
     del_btn: _del_btn
     height: _issue_note.height
-    Label:
+    FieldLabel:
         id: _issue_number
-        font_size: sp(18)
-        text_size: self.size
-        valign: 'top'
-        halign: 'right'
-        width: dp(65)
+        valign: 'center'
     FieldBox:
         Label:
+            canvas:
+                Color:
+                    rgba: (1, 1, 1, .03) if root.back_lit else (1, 1, 1, 0)
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
             id: _issue_note
             size_hint: 1, None
             height: self.texture_size[1]
@@ -114,8 +145,6 @@
             font_size: sp(18)
         InvisiButton:
             id: _del_btn
-            #text_size: self.size
-            size: self.texture_size
             valign: 'center'
             halign: 'right'
             text: 'x'
@@ -129,6 +158,8 @@
     background_color: 0,0,0,0
     color: .6,.6,.6,1 if self.disabled == False else .2,.2,.2,1
     padding: dp(5), 0
+    size_hint: None, None
+    size: self.texture_size
 
 <IssueToggleButton>:
     font_size: sp(15)
@@ -138,6 +169,7 @@
     size_hint: 1, None
     #valign:'center'
     allow_no_selection: False
+
 
 <OtherEditionBox>:
     issues_container: _issues_container
@@ -159,8 +191,6 @@
             on_release: root.remove_edition()
     GridLayout:
         id: _issues_container
-        padding: dp(5)
-        spacing: dp(2)
         cols: 10
 
 <AnnualsEditionBox>:
@@ -181,8 +211,6 @@
             on_release: root.remove_edition()
     GridLayout:
         id: _annuals_container
-        padding: dp(5)
-        spacing: dp(2)
         cols: 5
 
 <StatusBar>:
@@ -195,7 +223,7 @@
 <TestBox>:
     canvas:
         Color:
-            rgba: 0, 1, 0 , .2
+            rgba: 0, 1, 0 , 1
         Rectangle:
             pos: self.pos
             size: self.size
