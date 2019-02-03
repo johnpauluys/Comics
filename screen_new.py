@@ -21,11 +21,16 @@ class ScreenNew(ComicsScreen):
     other_publisher_toggle = ObjectProperty()
     other_publisher_text = ObjectProperty()
     title_text = ObjectProperty()
-    issues_text = ObjectProperty()
+    standard_issues_text = ObjectProperty()
+    odd_issues_text = ObjectProperty()
     start_date_text = ObjectProperty()
     end_date_text = ObjectProperty()
     special_issue_notes = ObjectProperty()
     issue_note_container = ObjectProperty()
+    odd_issues_container = ObjectProperty()
+
+    standard_issues_container = ObjectProperty()
+
     edition_name_text = ObjectProperty()
     edition_issues_text = ObjectProperty()
 
@@ -35,12 +40,11 @@ class ScreenNew(ComicsScreen):
     publisher_count = NumericProperty(0)
     standard_issues = ListProperty()
     issue_notes = DictProperty()
-    odd_issues = ListProperty()
     special_issues = ListProperty()
 
     ongoing_series = BooleanProperty(False)
 
-    data = {'owned_issues': list(), 'issue_notes': dict()}
+    data = {'odd_issues': list(), 'owned_issues': list(), 'issue_notes': dict()}
     other_editions_data = dict()
 
     # error handling
@@ -72,47 +76,8 @@ class ScreenNew(ComicsScreen):
             # add issue to data dict
             self.data['issue_notes'][issue_number] = issue_note.strip()
 
-    def create_odd_issues_lists(self, pre_issues):
-        """ Return two sorted list containing pre_issues
-                one list to contain values like '1a, 1b, etc.'
-                and another list to int anf float values
-        """
-
-        # create two empty list
-        strings_list = []
-        numbers_list = []
-        special_list = []
-
-        # split numeric values from strings
-        for issue in set([i.strip() for i in pre_issues.split(',')]):
-            # handle trailing (or just extra) commas by checking if issue
-            if issue:
-                # convert to appropriate
-                issue = IssueToggleButton.convert_issue_number(issue)
-                if not isinstance(issue, str):
-                    # handle ints and floats
-                    numbers_list.append(issue)
-                else:
-                    if '_' in issue:
-                        special_list.append(issue)
-                    else:
-                        strings_list.append(issue)
-
-        # sort lists
-        strings_list.sort()
-        special_list.sort()
-        numbers_list.sort()
-
-        # return sorted lists
-        return strings_list, special_list, numbers_list
-
     def populate_issue_container(self, container, issue_list):
         """ Add issue buttons to issues container box """
-
-        ongoing = 0
-        if issue_list[-1] == 'ongoing':
-            ongoing = 1
-            del issue_list[-1]
 
         # fill the first spots with blank, if necessary
         if issue_list == self.standard_issues and issue_list[0] != 1:
@@ -128,72 +93,182 @@ class ScreenNew(ComicsScreen):
             # add button to container
             container.add_widget(new_issue_toggle)
 
-        if ongoing:
+        if self.ongoing_series:
             container.add_widget(Label(size_hint=(1, 1), text='. . .'))
 
         # fill up empty space to make it took prettier
-        if len(issue_list) + ongoing < 10:
+        if len(issue_list) + int(self.ongoing_series) < 10:
             for i in range(10 - len(issue_list) % 10):
                 container.add_widget(Label(size_hint=(1, 1)))
 
-    def load_issues(self, container, input_field):
+    def load_standard_issues(self):
+        """ Load standard issues based on what user entered """
 
-        # clear anything that's already in container
-        container.clear_widgets()
-        issues = input_field.text.strip()
+        # reset ongoing_series
+        self.ongoing_series = False
+        # get stripped text from input field
+        issues = self.standard_issues_text.text.strip()
 
-        # match regex string to see if it is standard issue
-        # not starting with a zero followed by digits and ends with an optional '+'
-        if match(r'^[1-9]\d*[+]?$', issues) or match(r'^[1-9]\d*[\-][1-9]\d*$', issues):
-            if issues.endswith('+'):
-                # handle ongoing series
-                self.data['issues_in_run'] = issues
-                self.standard_issues = list(range(1, int(issues[:-1]) + 1)) + ['ongoing']
-                self.ongoing_series = True
-            else:
-                if '-' in issues:
-                    # handle sections, like 25-100, etc.
-                    first, last = sorted(issues.split("-"), key=int)
-                    self.data['issues_in_run'] = '{}-{}'.format(first, last)
-                    self.standard_issues = list(range(int(first), int(last) + 1))
-                else:
-                    # handle finished series
-                    self.data['issues_in_run'] = int(issues)
-                    self.standard_issues = list(range(1, int(issues) + 1))
-                self.ongoing_series = False
-
-            self.populate_issue_container(container, self.standard_issues)
-            self.start_date_text.focus = True
-
-        elif not issues.endswith('-'):
-            # handle non standard issues
-            strings, specials, numbers = self.create_odd_issues_lists(issues)
-
-            # populate _odd_issue_container
-            if strings or specials:
-                self.populate_issue_container(container, strings + specials)
-            if numbers:
-                self.populate_issue_container(container, numbers)
-
-            self.special_issues = specials
-
-            # update data dict with newly formatted values
-            print('setting pre_issues to:')
-
-            self.data['pre_issues'] = strings + specials + numbers
-            print(self.data['pre_issues'])
-
+        # check format of input
+        if not issues:
+            print('no issues')
+            return False
+        elif match(r'^[1-9]\d*[+]$', issues):
+            # handle ongoing series
+            self.ongoing_series = True
+            self.data['standard_issues'] = issues
+            self.standard_issues = list(range(1, int(issues[:-1]) + 1))
+        elif match(r'^[1-9]\d*[\-][1-9]\d*$', issues):
+            # handle ranges, like 25-100, etc.
+            first, last = sorted(issues.split("-"), key=int)
+            self.data['standard_issues'] = '{}-{}'.format(first, last)
+            self.standard_issues = list(range(int(first), int(last) + 1))
+        elif match(r'^[1-9]\d*$', issues):
+            # handle integers
+            self.standard_issues = list(range(1, int(issues) + 1))
+            self.data['standard_issues'] = int(issues)
         else:
+            # this should never happen with the way issue text input is designed
+            self.status_bar.set_status("Not sure what to do with {} issues. Please check issues field again.", 'notice')
+            self.standard_issues_text.select_all()
+            return False
 
-            self.status_bar.set_status("Something went wonky. Check the total issues field.", 'warning')
+        # clear standard issue container
+        self.standard_issues_container.clear_widgets()
+        # add issue toggle buttons to container
+        self.populate_issue_container(self.standard_issues_container, self.standard_issues)
+        # focus on next widget
+        self.standard_issues_text.get_focus_next().focus = True
+        # check whether odd issues were somehow already entered and populate if necessary
+        if self.odd_issues_text.text:
+            self.load_odd_issues(self.status_bar)
+        return True
 
-    def select_all_issues(self, layout):
-        for child in layout.children:
-            child.state = 'down'
+    def create_odd_issues_lists(self, odd_issues):
+        """ Return three sorted list containing odd_issues
+                one list to contain values like '1a, 1b, etc.'
+                and another list to int anf float values
+        """
+        # create two empty list
+        strings_list = []
+        numbers_list = []
+        special_list = []
+        error_list = []
 
-    def deselect_all_issues(self, layout):
-        for child in layout.children:
-            child.state = 'normal'
+        # split numeric values from strings
+        for issue in set([i.strip() for i in odd_issues.split(',')]):
+            # handle trailing (or just extra) commas by checking if issue
+            if issue:
+                # convert to appropriate
+                issue = IssueToggleButton.convert_issue_number(issue)
+
+                if isinstance(issue, int) or isinstance(issue, float):
+                    if issue not in self.standard_issues:
+                        numbers_list.append(issue)
+                    else:
+                        error_list.append(str(issue))
+                elif isinstance(issue, str):
+                    if '_' in issue:
+                        if int(issue.split('_')[0]) in self.standard_issues:
+                            special_list.append(issue)
+                        else:
+                            error_list.append(issue)
+                    else:
+                        strings_list.append(issue)
+
+        # sort lists
+        strings_list.sort()
+        special_list.sort(key=lambda a: int(a.split('_')[0]))
+        numbers_list.sort()
+
+        # return sorted lists
+        return strings_list, special_list, numbers_list, error_list
+
+    def load_odd_issues(self, status_bar):
+
+        self.odd_issues_container.clear_widgets()
+
+        issues = self.odd_issues_text.text.strip()
+
+        # split string up into different formats
+        strings, specials, numbers, errors = self.create_odd_issues_lists(issues)
+
+        # populate odd_issues_container
+        if strings or specials:
+            self.populate_issue_container(self.odd_issues_container, strings + specials)
+        if numbers:
+            self.populate_issue_container(self.odd_issues_container, numbers)
+
+        self.special_issues = specials
+
+        # update data dict with newly formatted values
+        print('setting odd_issues to:')
+
+        self.data['odd_issues'] = strings + specials + numbers
+        print(self.data['odd_issues'])
+
+        if errors:
+            if len(errors) > 1:
+                error_msg = "The following conflicts occurred:"
+            else:
+                error_msg = "The following conflict occurred:"
+            doubles, variants = [], []
+            for error in errors:
+                if '_' in error:
+                    variants.append(error)
+                else:
+                    doubles.append(error)
+            if doubles:
+                if len(doubles) > 1:
+                    error_msg += " {} exist in standard issues.".format(', '.join(sorted(doubles)))
+                else:
+                    error_msg += " {} exists in standard issues.".format(doubles[0])
+            if variants:
+                if len(variants) > 1:
+                    error_msg += " {} must exist in standard issues, as they are variants.".format(', '.join(variants))
+                else:
+                    error_msg += " {} must exist in standard issues, as it considered a variant.".format(variants[0])
+
+            status_bar.set_status(error_msg, 'notice')
+
+    def select_issue_range(self, range_input, layouts_list):
+        """ Select issues """
+
+        issues = []
+        for n in [i.strip() for i in range_input.text.split(',')]:
+            if match(r'^[1-9]\d*\-[1-9]\d*', n):
+                start, end = n.split('-')
+                issues += [str(issue) for issue in list(range(int(start), int(end) + 1))]
+            else:
+                issues.append(n)
+
+        for layout in layouts_list:
+            for child in layout.children:
+                if child.text in issues:
+                    print(child.text, issues)
+                    child.state = 'down'
+                    issues.remove(child.text)
+        if issues:
+            missing_issues = ', '.join(issues)
+            self.status_bar.set_status("Something went wrong. {} not in issues.".format(missing_issues), 'notice')
+            range_input.text = missing_issues
+            range_input.select_all()
+        else:
+            range_input.text = ''
+        range_input.focus = True
+
+    def select_all_issues(self, layouts_list):
+
+        for layout in layouts_list:
+
+            for child in layout.children:
+                child.state = 'down'
+
+    def deselect_all_issues(self, layouts_list):
+
+        for layout in layouts_list:
+            for child in layout.children:
+                child.state = 'normal'
 
     def add_new_edition(self, container, edition_name, edition_issues):
         """ Add new edition to edition's section """
@@ -206,7 +281,44 @@ class ScreenNew(ComicsScreen):
         self.edition_name_text.text = ''
         self.edition_issues_text.text = ''
 
-    def add_annuals(self, container, edition_name, first, last):
+    def add_annuals(self, ed_container, edition_name, ed_issues_text):
+
+        # regex matches
+        single_number = r'^[1-9]\d{0,2}$'
+        single_year = r'^(19|20)\d{2}$'
+        range_number = r'^[1-9]\d{0,2}\-[1-9]\d{0,2}$'
+        range_year = '^(19|20)\d{2}\-(19|20)\d{2}$'
+
+        issue_list = [i.strip() for i in ed_issues_text.text.split(',')]
+        print(issue_list)
+        issues = []
+
+        # if len(issue_list) == 1 and match(single_number, issue_list[0]):
+        #     no_of_issues = int(issue_list[0])
+        #     issues = list(range(1, no_of_issues + 1))
+        #     self.other_editions_data[edition_name.text] = {'owned_issues': [], 'no_of_issues': no_of_issues}
+
+        for i in issue_list:
+            if match(single_number, i) or match(single_year, i):
+                    issues.append(int(i))
+            elif match(range_year, i) or match(range_number, i):
+                first, last = i.split('-')
+                issues += [ed for ed in range(int(first), int(last) + 1)]
+
+        self.other_editions_data[edition_name.text] = {'owned_issues': [], 'issues': issues}
+
+        print(self.other_editions_data)
+        annuals = AnnualsEditionBox(ed_container,
+                                    edition_name.text,
+                                    issues,
+                                    self.other_editions_data)
+
+        ed_container.add_widget(annuals)
+        edition_name.text = ''
+        ed_issues_text.text = ''
+        edition_name.focus = True
+
+    def add_annuals_old(self, container, edition_name, first, last):
 
         if not last.text:
             last.text = str(self.get_current_year())
@@ -296,10 +408,17 @@ class ScreenNew(ComicsScreen):
         return sorted(publishers)
 
     def set_format(self, db_cursor):
+        """ Sets format field to id of selected format
+            If no id is available, format will be add to formats table
+        """
+        if 'format' not in self.data:
+            return False
 
+        # attempt to get id of entered format
         db_cursor.execute("SELECT id FROM FORMATS WHERE format IS '{}'".format(self.data['format']))
         format_id = db_cursor.fetchone()
         if not format_id:
+            # add format to FORMATS table in db
             db_cursor.execute("INSERT INTO FORMATS('format') VALUES('{}')".format(self.data['format']))
             self.data['format'] = db_cursor.lastrowid
         else:
@@ -315,23 +434,25 @@ class ScreenNew(ComicsScreen):
 
     def validate_user_input(self):
         """ Check whether all necessary fields are filled out"""
-        # TODO check if owned issues were selected
         if not self.publisher_count and not self.other_publisher_text.text:
-            print("No publisher selected / entered")
-        elif self.other_publisher_text.current_suggested_word:
-            print('Check Publisher(s) Other text')
+            error_msg = "No publisher selected / entered."
         elif not self.title_text.text:
-            print('No comic title entered')
-        elif not self.issues_text.text:
-            print('No total issues amount entered')
+            error_msg = "No comic title entered"
+        elif not self.standard_issues_text.text:
+            error_msg = "No total issues amount entered"
         elif self.edition_name_text.text:
-            print("Other editions field still has some text. Did you forget to click 'Add'")
+            error_msg = "Other editions field still has some text. Did you forget to click 'Add'"
+        elif self.special_issues:
+            error_msg = "There are still open variation / 'joker' issues ( {} ).".format(', '.join(self.special_issues))
+            error_msg += " Look at the notes section."
+        elif not self.data['owned_issues']:
+            error_msg = "You haven't selected any owned issues."
         elif not self.compare_issues_to_owned_issues():
-            print("There was a problem with selected owned issues.")
+            error_msg = "There was a problem with selected owned issues."
         else:
             print("Data suffices for submission")
             return True
-        print('Submission canceled, see reasons above')
+        self.status_bar.set_status(error_msg + " Submission cancelled.", 'error')
         return False
 
     def compare_issues_to_owned_issues(self):
@@ -340,16 +461,15 @@ class ScreenNew(ComicsScreen):
             For more information read remove_excess_issues() docstring"""
         # empty errors_list
         self.errors = []
-        issues_in_run = list(range(1, self.data['issues_in_run'] + 1))
         # check for mistakes and add them to errors list, if necessary
         for i in self.data['owned_issues']:
-            if i not in self.data['pre_issues'] and i not in issues_in_run:
+            if i not in self.data['odd_issues'] and i not in self.standard_issues:
                 self.errors.append(i)
         # give user control
         if self.errors:
             self.status_bar.confirm("You've somehow selected {} issue(s) not contained in given data. ".format(len(self.errors)) +
                                     "Does everything look right?", self.remove_excess_issues,
-                                    "I'll check/correct it.", "Yes, the application messed up!")
+                                    "No, I'll correct it.", "Yes, I double checked!")
             return False
         return True
 
@@ -365,6 +485,19 @@ class ScreenNew(ComicsScreen):
         print('Removing excess issues')
         for e in range(len(self.errors)):
             self.data['owned_issues'].remove(self.errors.pop())
+
+    def check_collection_complete(self):
+        """ Sets owned_issues to complete if all issues owened"""
+
+        if not self.ongoing_series:
+
+            complete = True
+            for i in self.data['owned_issues']:
+                if i not in self.standard_issues and i not in self.data['odd_issues']:
+                    complete = False
+
+            if complete:
+                self.data['owned_issues'] = 'complete'
 
     def sql_insert_from_dict(self, dictionary, table_name):
         """ Create an SQL command string from data dictionary """
@@ -423,34 +556,65 @@ class ScreenNew(ComicsScreen):
 
         # empty dictionaries and lists, etc
         self.publisher_count = 0
-        self.data = {'owned_issues': list(), 'issue_notes': dict()}
+        self.standard_issues = []
+        self.issue_notes = {}
+        self.special_issues = []
+
+        self.ongoing_series = False
+
+        self.data = {'odd_issues': list(), 'owned_issues': list(), 'issue_notes': dict()}
         self.other_editions_data = dict()
 
+        self.errors = []
+
+    def print_all_data(self):
+
+        print("""
+        publisher_count: {}
+        standard_issues: {}
+        issue_notes: {}
+        special_issues: {}
+        ongoing_series: {}
+        other_editions_data: {}
+        data:""".format(self.publisher_count, self.standard_issues, self.issue_notes,
+                   self.special_issues, self.ongoing_series, self.other_editions_data))
+        for k in sorted(self.data):
+            print("\t... {}: {}".format(k, self.data[k]))
+
     def submit(self, app):
-        print()
-        for i in sorted(self.data):
-            print("{}: '{}'".format(i, self.data[i]))
-        print()
-        return
+
+        self.print_all_data()
 
         if not self.validate_user_input():
             return False
 
-        # update publishers if more than one is given
-        publisher_list = self.create_publisher_list()
-        table_name = self.set_table_name(publisher_list)
-
-        # set other_editions
-        self.data['other_editions'] = self.other_editions_data
-
+        # get cursor ready
         cur = app.db_cursor()
 
-        self.set_format(cur)
-
+        # update publishers if more than one is given
+        publisher_list = self.create_publisher_list()
+        # add new publisher if necessary
         self.add_new_publisher(app, publisher_list)
 
+        # set table name, depending on selected publisher(s)
+        table_name = self.set_table_name(publisher_list)
+        # set publishers list if more than one publisher was given
         if table_name == 'InterCompany':
             self.data['publishers'] = self.set_publishers(cur, publisher_list)
+
+        # convert entered format to format id in FORMATS table
+        self.set_format(cur)
+
+        # add other_editions to data dict
+        self.data['other_editions'] = self.other_editions_data
+
+        # check collection completeness
+        self.check_collection_complete()
+
+        print()
+        for i in sorted(self.data):
+            print("{}: '{}'".format(i, self.data[i]))
+        print()
 
         sql = self.sql_insert_from_dict(self.data, table_name)
 

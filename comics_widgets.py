@@ -13,6 +13,14 @@ from re import match
 Builder.load_file('comics_widgets.kv')
 
 
+class TestBox(BoxLayout):
+    pass
+
+
+class TestLabel(Label):
+    pass
+
+
 class ComicsScreen(Screen):
 
     def get_current_year(self):
@@ -28,65 +36,117 @@ class FieldLabel(Label):
 
 
 class MyTextInput(TextInput):
+    """ Custom TextInput class """
 
-    number_of_spaces_allowed = NumericProperty(1)
-
-    def on_text(self, instance, value):
-        self.remove_space(instance, value)
-
-    def remove_space(self, widget, text):
-        """ Don't allow user to start string with a space or enter a double space"""
-        # Had to implement this, to avoid some bug in kivy's suggest text feature
-        if text == ' ' or text.endswith(' ' * (self.number_of_spaces_allowed + 1)):
-            widget.text = text[:-1]
-
-
-class IssueNumberInput(TextInput):
+    allowed_spaces = NumericProperty(1)
 
     def on_text(self, instance, value):
         """ Allow user to only input the correct formats """
+
         if not self.validate_input(value):
             self.text = value[:-1]
 
     def validate_input(self, user_input):
-        """ Check whether the correct format is given, then return boolean """
+        """ Don't allow user to start string with a space or enter a double space"""
 
-        if match(r'^[1-9]\d*[\+]?$', user_input) or match(r'^[1-9]\d*[\-]([1-9]\d*)?$', user_input):
+        # Had to implement this, to avoid some bug in kivy's suggest text feature
+        if user_input == ' ' or user_input.endswith(' ' * (self.allowed_spaces + 1)):
+            return False
+        return True
+
+
+class IssueNumberInput(MyTextInput):
+    """ TextInput class to handle standard issue input """
+
+    def validate_input(self, user_input):
+        """ Only allow standard issue numbers and issue ranges eg. 24-120 """
+
+        if match(r'^[1-9]\d{0,3}(\+|-[1-9]\d{0,3})?$', user_input):
             return True
         return False
 
 
-class DateInput(TextInput):
+class OddIssueInput(MyTextInput):
+    """ TextInput class to handle odd issues input"""
 
-    def check_input(self, start_date, end_date):
-        """ Check whether valid dates are given """
-        try:
-            start, start_format = self.validate_date(start_date.text, return_info=True)
-            end, end_format = self.validate_date(end_date.text, return_info=True)
+    def validate_input(self, user_input):
+        """ Only allow processable input values. """
 
-            if start > end:
-                start_date.text, end_date.text = end_date.text, start_date.text
+        odd = '-?(\d{1,4}((\D[\D\d]?)|(\.\d{1,2})|(_((\d|\D){1,2})?))?)?'
+        repeat_odd = r'^' + odd + '(,\s?' + odd + ')*$'
+        if match(repeat_odd, user_input):
+            return True
+        return False
 
-        except ValueError:
-            return False
-        except TypeError:
-            pass
-        return True
 
-    def validate_date(self, date_string, return_info=False):
+class DateInput(MyTextInput):
 
-        date = ObjectProperty()
-        formats = ["%Y", "%m/%Y", "%d/%m/%Y"]
-        strikes = 0
+    date_valid = BooleanProperty(False)
+    status_bar = ObjectProperty()
+    error_status = "Date format not valid. Use any of the following: \"DD/MM/YYYY\", \"MM/YYY\", \"YYYY\""
 
-        for f in formats:
+    # def on_focus(self, instance, value):
+    #
+    #     if value:
+    #         self.date_valid = False
+    #     prev_widget = self.get_focus_previous()
+    #     # check if this is the end date and if the previous date was not valid
+    #     if isinstance(prev_widget, type(instance)) and not prev_widget.date_valid:
+    #         print('start invalid')
+    #         # focus on previous widget and select all text for easy deletion
+    #         prev_widget.focus = True
+    #         prev_widget.select_all()
+    #         self.status_bar.set_status(self.error_status, 'notice')
+
+    def set_date(self, data_dict, dict_key):
+
+        if self.text:
+            date = self.validate_date(self.text)
+            if date:
+                self.date_valid = True
+                self.get_focus_next().focus = True
+                # print('date success')
+                data_dict[dict_key] = date
+            else:
+                self.select_all()
+                self.status_bar.set_status(self.error_status, 'notice')
+                # print('date fail')
+        else:
+            data_dict[dict_key] = None
+            self.get_focus_next().focus = True
+
+    def validate_date(self, date):
+
+        self.date_valid = False
+
+        if match(r'^((19)|(20))\d{2}$', date):
+            # check yyyy
+            # print('date format: yyyy')
+            return date
+        else:
+            d_format = str()
+            delimiter = ''
+
+            if match(r'^[01]\d[.\/-]?[12][90]\d{2}$', date):
+                # check mm/yyyy
+                # print('date format: mm-yyyy')
+                delimiter = date[2] if len(date) == 7 else ''
+                d_format = '%m{0}%Y'
+
+            elif match(r'^[0-3]\d[.\/-]?[01]\d[.\/-]?[12][90]\d{2}$', date):
+                # dd/mm/yyyy
+                # print('date format: dd/mm/yyyy')
+                delimiter = date[2] if len(date) == 10 else ''
+                if delimiter and delimiter == date[5]:
+                    d_format = '%d{0}%m{0}%Y'
+                else:
+                    return False
             try:
-                date = datetime.strptime(date_string, f)
-                if return_info:
-                    return date, formats[strikes]
+                time_stamp = datetime.strptime(date, d_format.format(delimiter))
+                if time_stamp:
+                    return time_stamp.strftime(d_format.format('-'))
             except ValueError:
-                strikes += 1
-        return True if strikes == 3 else False
+                return False
 
 
 class PredictiveTextInput(MyTextInput):
@@ -129,7 +189,7 @@ class PredictiveTextInput(MyTextInput):
             # get a suggestion string
             result = ''
             for word in word_list:
-                if word.startswith(text):
+                if word.lower().startswith(text.lower()):
                     result = word
                     break
             if result:
@@ -178,16 +238,20 @@ class IssueToggleButton(ToggleButton):
 
         btn_text = btn_text.strip()
 
-        if btn_text.isnumeric():
+        if match(r'^((-?[1-9]\d{0,3})|0)$', btn_text):
             # handle ints
+            # print("int: {}".format(btn_text))
             return int(btn_text)
+        elif match(r'^-?\d{1,4}\.\d{1,2}$', btn_text):
+            # handle fractions
+            # print("float: {}".format(btn_text))
+            return float(btn_text)
+        elif match(r'^-?\d{1,4}((\D{1,2})|((\.\d{1,2})?_((\D|\d){1,2})?))$', btn_text):
+            # handle strings like 1a, 1_, 1_a, 1_ab, 1_a1, etc
+            # print("str: {}".format(btn_text))
+            return str(btn_text)
         else:
-            try:
-                # handle floats
-                return float(btn_text)
-            except ValueError:
-                # return string as is
-                return btn_text
+            print("no match: {}".format(btn_text))
 
     def on_state(self, instance, value):
         """ Add or remove btn from owned issues list """
@@ -257,13 +321,6 @@ class AnnualsEditionBox(BoxLayout):
 
         self.ids._annuals_label.text = edition_name
 
-        issues = "{} - {}".format(years[0], years[-1])
-        if years[-1] == datetime.now().year:
-            issues = '{} - present'.format(years[0])
-
-        self.issues_data[edition_name] = {'owned_issues': [], 'issues': issues}
-        print(issues_data, self.issues_data)
-
         for y in years:
             new_issue_btn = IssueToggleButton(self.annuals_container, self.issues_data[self.edition_name], text=str(y))
             self.annuals_container.add_widget(new_issue_btn)
@@ -317,11 +374,11 @@ class StatusBar(FieldBox):
         elif msg_type == 'hint':
             self.current_status.text = ''  # ''HINT: '
             self.current_status.color = (.2, .7, .9, 1)
-        elif msg_type == 'important':
-            self.current_status.text = 'IMPORTANT: '
+        elif msg_type == 'notice':
+            self.current_status.text = 'PLEASE NOTE: '
             self.current_status.color = (1, 1, 0, 1)
-        elif msg_type == 'warning':
-            self.current_status.text = 'WARNING: '
+        elif msg_type == 'error':
+            self.current_status.text = 'ERROR: '
             self.current_status.color = (1, 0, 0, 1)
         elif msg_type == 'success':
             self.current_status.text = 'SUCCESS: '
@@ -341,10 +398,8 @@ class StatusBar(FieldBox):
             self.remove_widget(yes)
             self.remove_widget(no)
             self.screen_disabled = False
-            print(instance.text)
             # call function if user chose yes
             if instance.text == confirm:
-                print(instance.text)
                 callback()
             self.clear_status()
 
@@ -357,14 +412,8 @@ class StatusBar(FieldBox):
         yes = Button(text=confirm)
         yes.bind(on_press=response)
 
-        self.set_status(question, 'warning')
+        self.set_status(question, 'notice')
         self.add_widget(no)
         self.add_widget(yes)
 
 
-class TestBox(BoxLayout):
-    pass
-
-
-class TestLabel(Label):
-    pass
