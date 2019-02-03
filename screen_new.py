@@ -413,6 +413,8 @@ class ScreenNew(ComicsScreen):
         """
         if 'format' not in self.data:
             return False
+        elif not self.data['format']:
+            return False
 
         # attempt to get id of entered format
         db_cursor.execute("SELECT id FROM FORMATS WHERE format IS '{}'".format(self.data['format']))
@@ -422,7 +424,7 @@ class ScreenNew(ComicsScreen):
             db_cursor.execute("INSERT INTO FORMATS('format') VALUES('{}')".format(self.data['format']))
             self.data['format'] = db_cursor.lastrowid
         else:
-            self.data['format'] = format_id
+            self.data['format'] = format_id[0]
 
     def focus_special_issue(self, special_issue_container):
         """ Focus on first top most widget of special issues if any """
