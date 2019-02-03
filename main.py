@@ -9,11 +9,11 @@ from screen_new import ScreenNew
 
 
 # configure app
-# Config.set('graphics', 'window_state', 'maximized')
-# Config.set('graphics', 'borderless', 1)
-Config.set('graphics', 'width', 1366)
-Config.set('graphics', 'height', 768)
-Config.set('graphics', 'resizable', 0)
+Config.set('graphics', 'window_state', 'maximized')
+Config.set('graphics', 'borderless', 1)
+# Config.set('graphics', 'width', 1366)
+# Config.set('graphics', 'height', 768)
+# Config.set('graphics', 'resizable', 0)
 
 
 class ComicsApp(App):
