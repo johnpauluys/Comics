@@ -138,7 +138,8 @@ class ScreenNew(ComicsScreen):
         # add issue toggle buttons to container
         self.populate_issue_container(self.standard_issues_container, self.standard_issues)
         # focus on next widget
-        self.standard_issues_text.get_focus_next().focus = True
+        if self.standard_issues_text.focus:
+            self.standard_issues_text.get_focus_next().focus = True
         # check whether odd issues were somehow already entered and populate if necessary
         if self.odd_issues_text.text:
             self.load_odd_issues(self.status_bar)

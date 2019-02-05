@@ -104,7 +104,8 @@ class DateInput(MyTextInput):
             date = self.validate_date(self.text)
             if date:
                 self.date_valid = True
-                self.get_focus_next().focus = True
+                if self.focus:
+                    self.get_focus_next().focus = True
                 # print('date success')
                 data_dict[dict_key] = date
             else:
@@ -113,7 +114,8 @@ class DateInput(MyTextInput):
                 # print('date fail')
         else:
             data_dict[dict_key] = None
-            self.get_focus_next().focus = True
+            if self.focus:
+                self.get_focus_next().focus = True
 
     def validate_date(self, date):
 

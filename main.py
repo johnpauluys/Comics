@@ -5,15 +5,16 @@ from kivy.uix.screenmanager import ScreenManager
 
 from os.path import isfile
 from sqlite3 import connect
-from screen_new import ScreenNew
+from screen_new import ScreenNew, ScreenHome
 
 
 # configure app
+Config.set('kivy', 'desktop', 1)
+Config.set('graphics', 'borderless', 0)
+Config.set('graphics', 'resizable', 0)
 Config.set('graphics', 'window_state', 'maximized')
-Config.set('graphics', 'borderless', 1)
 # Config.set('graphics', 'width', 1366)
 # Config.set('graphics', 'height', 768)
-# Config.set('graphics', 'resizable', 0)
 
 
 class ComicsApp(App):
@@ -29,6 +30,7 @@ class ComicsApp(App):
     pages.add_widget(ScreenNew(name='screen_new'))
 
     def build(self):
+        self.title = 'Holger\'s Comic Collection'
         self.create_comics_database()
         return self.pages
 

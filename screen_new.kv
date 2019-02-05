@@ -183,7 +183,7 @@
                             # TODO add a loading icon
                             id: _standard_issues_text
                             text_validate_unfocus: False
-#                            on_focus: root.load_standard_issues() if not self.focus else None
+                            on_focus: root.load_standard_issues() if (not self.focus and not self.get_focus_previous().focus) and self.text else None
                             on_text_validate: root.load_standard_issues() if self.text else _standard_issues_container.clear_widgets()
                             # status_bar
                             default_text: "Enter the number of standard issues and press ENTER. For ongoing series, enter something like \"142+\". Weird things like \"25-132\" would also work."
@@ -195,7 +195,7 @@
                                 id: _start_date_text
                                 status_bar: _status_bar
                                 text_validate_unfocus: False
-#                                on_focus: self.set_date(root.data, 'start_date') if not self.focus and self.text else None
+                                on_focus: self.set_date(root.data, 'start_date') if (not self.focus and not self.get_focus_previous().focus) and self.text else None
                                 on_text_validate: self.set_date(root.data, 'start_date')
                                 # status_bar
                                 default_text: "Enter the date in one of these formats: \"DD/MM/YYYY\", \"MM/YYYY\" or just \"YYYY\"."
@@ -208,7 +208,7 @@
                                 status_bar: _status_bar
                                 text_validate_unfocus: False
                                 disabled: True if root.ongoing_series or not _start_date_text.text else False
-                                on_focus: self.set_date(root.data, 'end_date') if not self.focus and self.text else None
+                                on_focus: self.set_date(root.data, 'end_date') if (not self.focus and not self.get_focus_previous().focus) and self.text else None
                                 on_text_validate: self.set_date(root.data, 'end_date')
                                 # status_bar
                                 #default_text: "Enter the date in one of these formats: \"DD/MM/YYYY\", \"MM/YYYY\" or just \"YYYY\"."
@@ -221,7 +221,7 @@
                             id: _odd_issues_text
                             size_hint_x: 1
                             text_validate_unfocus: False
-#                            on_focus: root.load_odd_issues() if not self.focus else None
+                            on_focus: root.load_odd_issues() if (not self.focus and not self.get_focus_previous().focus) and self.text else None
                             on_text_validate: root.load_odd_issues(_status_bar) if self.text else None
                             # change focus
                             on_text_validate: _edition_name_text.focus = True
