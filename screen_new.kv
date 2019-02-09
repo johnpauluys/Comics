@@ -221,7 +221,7 @@
                             id: _odd_issues_text
                             size_hint_x: 1
                             text_validate_unfocus: False
-                            on_focus: root.load_odd_issues() if (not self.focus and not self.get_focus_previous().focus) and self.text else None
+                            on_focus: root.load_odd_issues(_status_bar) if (not self.focus and not self.get_focus_previous().focus) and self.text else None
                             on_text_validate: root.load_odd_issues(_status_bar) if self.text else None
                             # change focus
                             on_text_validate: _edition_name_text.focus = True
