@@ -1,0 +1,50 @@
+#: kivy 1.10.1
+
+<ScreenHome>:
+    on_enter: _status_bar.set_status("This is a list of all comics in database")
+    on_enter: self.prepare_variables(app.db_cursor())
+    #on_enter: self.load_comic_titles(app.db_cursor())
+
+    titles_container: _titles_container
+    status_bar: _status_bar
+
+    ScreenTitle:
+        id: _screen_title
+        pos_hint: {'top': 1}
+        text: "Holger's Comic Collection "
+    Label:
+        id: _page_title
+        pos: dp(125), _screen_content.top
+        font_size: sp(23)
+        text: "Home"
+    ScreenContainer:
+        id: _screen_content
+        pos: 0, _status_bar.top
+        height: root.height - (_screen_title.height + 2 * _status_bar.height)
+        disabled: True if _status_bar.screen_disabled else False
+
+# Column 1
+        BoxLayout:
+            orientation: 'horizontal'
+            TestBox:
+                size_hint: None, 1
+                width: dp(300)
+            ScrollView:
+                size_hint: 1, None
+                height: self.parent.height
+                TestBox:
+                    id: _titles_container
+                    size_hint_y: None
+                    height: self.minimum_height
+
+    BoxLayout:
+        padding: dp(10)
+        FieldBox:
+            canvas.before:
+                Color:
+                    rgba: 0, 0, 0 , .5
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+            StatusBar:
+                id: _status_bar
