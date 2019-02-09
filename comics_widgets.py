@@ -13,14 +13,6 @@ from re import match
 Builder.load_file('comics_widgets.kv')
 
 
-class TestBox(BoxLayout):
-    pass
-
-
-class TestLabel(Label):
-    pass
-
-
 class ComicsScreen(Screen):
 
     def get_current_year(self):

@@ -5,16 +5,17 @@ from kivy.uix.screenmanager import ScreenManager
 
 from os.path import isfile
 from sqlite3 import connect
-from screen_new import ScreenNew, ScreenHome
+from screen_new import ScreenNew
+from screen_home import ScreenHome
 
 
 # configure app
-Config.set('kivy', 'desktop', 1)
-Config.set('graphics', 'borderless', 0)
-Config.set('graphics', 'resizable', 0)
-Config.set('graphics', 'window_state', 'maximized')
-# Config.set('graphics', 'width', 1366)
-# Config.set('graphics', 'height', 768)
+# Config.set('kivy', 'desktop', 1)
+# Config.set('graphics', 'borderless', 0)
+# Config.set('graphics', 'resizable', 0)
+# Config.set('graphics', 'window_state', 'maximized')
+Config.set('graphics', 'width', 1366)
+Config.set('graphics', 'height', 768)
 
 
 class ComicsApp(App):
@@ -27,11 +28,14 @@ class ComicsApp(App):
 
     # add screen manager and load first page
     pages = ScreenManager()
-    pages.add_widget(ScreenNew(name='screen_new'))
+    # pages.add_widget(ScreenHome(name='screen_home'))
 
     def build(self):
         self.title = 'Holger\'s Comic Collection'
         self.create_comics_database()
+        # self.pages.add_widget(ScreenNew(name='screen_new'))
+        self.pages.add_widget(ScreenHome(name='screen_home'))
+
         return self.pages
 
     def db_cursor(self):
@@ -119,8 +123,8 @@ class ComicsApp(App):
                           'id' INTEGER NOT NULL PRIMARY KEY,
                           'publishers' TEXT NOT NULL,
                           'title' TEXT NOT NULL,
-                          'format' TEXT, 
                           'volume' TEXT,
+                          'format' TEXT, 
                           'standard_issues' INTEGER NOT NULL,
                           'odd_issues' TEXT,
                           'owned_issues' TEXT NOT NULL,
