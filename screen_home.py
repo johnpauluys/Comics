@@ -2,7 +2,7 @@ from kivy.lang import Builder
 from kivy.properties import BooleanProperty, DictProperty, ListProperty, NumericProperty, ObjectProperty, StringProperty
 from kivy.uix.label import Label
 
-from json import dumps
+from json import dumps, loads
 from re import match
 
 from comics_widgets import AnnualsEditionBox, ComicsScreen, IssueNoteBox, IssueToggleButton, OtherEditionBox, SpecialIssueNoteInputBox
@@ -25,24 +25,32 @@ class ScreenHome(ComicsScreen):
     inter_keys = ListProperty()
 
     def prepare_variables(self, cur):
+        """ Set up class """
         self.publishers = self.set_publishers(cur)
         self.publisher_keys = self.get_table_fields(cur, self.publishers[1])
         self.inter_keys = self.get_table_fields(cur, 'InterCompany')
-        # print(self.publishers, self.publisher_keys, self.inter_keys)
-        print('loading comic titles')
 
-        self.get_titles_by_publisher(cur)
+        titles = self.load_all_titles(cur)
+        self.show_titles(titles)
 
+    def load_all_titles(self, cur):
+        """ Return sorted list of all titles by all publishers """
 
-    def load_comic_titles(self, cur):
-        print('loading comic titles')
+        titles = []
+        # get titles from publishers
+        for p_id in self.publishers:
+            titles += self.get_publisher_titles(cur, p_id)
+        # get titles from inter company cross overs
+        titles += self.get_inter_company_titles(cur)
 
-        self.get_titles_by_publisher(cur)
+        return self.sort_ignore_prefix(titles)
 
     @staticmethod
     def set_publishers(cur):
-        """ Return list of publishers """
-
+        """ Return dictionary of publishers
+            1: 'publisher1'
+            2: 'publisher2'
+        """
         return {p[0]: p[1] for p in cur.execute("SELECT id, publisher FROM PUBLISHERS").fetchall()}
 
     @staticmethod
@@ -51,69 +59,70 @@ class ScreenHome(ComicsScreen):
         cur.execute("SELECT * FROM {}".format(table_name)).fetchone()
         return list(map(lambda a: a[0], cur.description))
 
-    def get_titles_by_publisher(self, cur):
+    def show_titles(self, titles):
+        """ Load title widgets """
 
-        titles_by_publisher = dict()
-        for p_id in self.publishers:
-            table = self.publishers[p_id].replace(' ', '_')
-            print(table)
-            titles = cur.execute("SELECT id, title FROM {}".format(table)).fetchall()
-            inter_sql = "SELECT id, title FROM InterCompany WHERE publishers LIKE '%{}%'".format(p_id)
-            titles += ((str(i[0])+'+', i[1]) for i in cur.execute(inter_sql).fetchall())
-            for title in titles:
-                print(title)
+        for t in titles:
+            # append '*' to inter company titles
+            if 'publishers' in t:
+                t['title'] += '*'
 
-            sorted_titles = list()
-            for db_id in self.sort_ignore_prefix(titles):
-                if isinstance(db_id, str):
-                    db_id = int(db_id[:-1])
-                    title = cur.execute("SELECT * FROM InterCompany WHERE id IS {}".format(db_id)).fetchall()[0]
-                    sorted_titles.append(dict(zip(self.inter_keys, title)))
-                else:
-                    title = cur.execute("SELECT * FROM {} WHERE id IS {}".format(table, db_id)).fetchall()[0]
-                    sorted_titles.append(dict(zip(self.publisher_keys, title)))
-            titles_by_publisher[table] = sorted_titles
+            title_label = Label(text=t['title'])
+            self.titles_container.add_widget(title_label)
 
-        print(titles_by_publisher)
-        for publisher in sorted(titles_by_publisher):
+    def get_publisher_titles(self, cur, p_id):
+        """ Return a list of titles [dict] by publisher """
 
-            publisher_label = Label(text=publisher)
-            self.titles_container.add_widget(publisher_label)
-            for titles in titles_by_publisher[publisher]:
-                if 'publishers' in titles:
-                    titles['title'] += '*'
-                title_label = Label(text="   " + titles['title'])
-                self.titles_container.add_widget(title_label)
+        # set table name
+        table = self.get_publisher_table(self.publishers[p_id])
+        # get titles from db
+        titles = cur.execute("SELECT * FROM {}".format(table)).fetchall()
+
+        return self.cleanup_titles(titles, self.publisher_keys)
+
+    def get_inter_company_titles(self, cur):
+        """ Return a list of inter company cross over titles """
+
+        titles = cur.execute("SELECT * FROM InterCompany").fetchall()
+        return self.cleanup_titles(titles, self.inter_keys)
+
+    def cleanup_titles(self, titles, keys):
+        """ Zip dictionary and jsonify dicts and lists from database """
+        titles = [self.zip_titles(t, keys) for t in titles]
+        titles = self.json_loads_dict(titles)
+
+        return titles
+
+    @staticmethod
+    def zip_titles(sql_tuple, keys):
+        """ Return a dictionary zipped from list of keys and sql tuples"""
+
+        return dict(zip(keys, sql_tuple))
+
+    @staticmethod
+    def json_loads_dict(titles_list):
+        """ json.loads all fields where possible and return jsonified dict """
+
+        jsonable_fields = ['odd_issues', 'other_editions', 'issue_notes', 'publishers']
+        for title in titles_list:
+            for f in jsonable_fields:
+                try:
+                    if title[f]:
+                        title[f] = loads(title[f])
+                except KeyError:
+                    pass
+            if title['owned_issues'] != 'complete':
+                title['owned_issues'] = loads(title_dict['owned_issues'])
+
+        return titles_list
+
+    @staticmethod
+    def get_publisher_table(publisher):
+        return publisher.replace(' ', '_')
 
     @staticmethod
     def sort_ignore_prefix(unsorted_list, ignore='the '):
         """ Return list sorted database indices ignore specified prefix """
 
-        # sort list ignoring the (default)
-        ordered = sorted(unsorted_list, key=lambda a: a[1][len(ignore)] if a[1].lower().startswith(ignore) else a[1])
-        # return indices
-        return [i[0] for i in ordered]
-
-    @staticmethod
-    def true_sort(unsorted_list):
-        """ Return list of sorted database indices ignoring articles in title names """
-
-        articles = ('the', 'a', 'an')
-
-        new_list = list()
-        for i in unsorted_list:
-            if i[1].lower().split()[0] in articles:
-                temp_name = ' '.join(i[1].split()[1:])
-                new_list.append((temp_name, i[0]))
-            else:
-                new_list.append((i[1], i[0]))
-
-        sorted_titles = list()
-        for item in sorted(new_list):
-            for u in unsorted_list:
-                # print(u)
-                # print(u[0])
-                if u[0] == item[1]:
-                    sorted_titles.append(u[0])
-
-        return sorted_titles
+        # sort list ignoring 'the' (default)
+        return sorted(unsorted_list, key=lambda a: a['title'][len(ignore):] if a['title'].lower().startswith(ignore) else a['title'])
