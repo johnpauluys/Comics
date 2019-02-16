@@ -413,6 +413,9 @@ class StatusBar(FieldBox):
 
 class ComicListWidget(BoxLayout):
 
+    title_label = ObjectProperty()
+    dropdown = ObjectProperty()
+
     title = StringProperty()
     progress = StringProperty()
 
@@ -444,6 +447,24 @@ class ComicListWidget(BoxLayout):
                 return "{}/{} ({:.1%})".format(owned_issues, total_issues, owned_issues/total_issues)
         else:
             return 'complete'
+
+    def open_info(self):
+        if self.dropdown.children:
+            self.dropdown.clear_widgets()
+        else:
+            btn = Button(text='click me on my studio')
+            start = Label(text=self.start_date if self.start_date else '-')
+
+            end = Label(text=self.end_date if self.end_date else '-')
+
+            self.dropdown.add_widget(btn)
+            self.dropdown.add_widget(start)
+            self.dropdown.add_widget(end)
+
+
+
+
+
 
 
 

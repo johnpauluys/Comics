@@ -125,8 +125,6 @@ class ScreenHome(ComicsScreen):
                 except KeyError:
                     pass
             if title['owned_issues'] != 'complete':
-                print(type(title['owned_issues']))
-                print(title['owned_issues'])
                 title['owned_issues'] = loads(title['owned_issues'])
 
         return titles_list

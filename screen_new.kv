@@ -3,6 +3,7 @@
 
 <ScreenNew>:
     on_enter: _status_bar.set_status("Start by selecting one or more publisher(s).")
+    on_pre_enter: root.reset_screen()
     publisher_dc_toggle: _dc_toggle
     publisher_marvel_toggle: _marvel_toggle
     publisher_dark_horse_toggle: _dark_horse_toggle
@@ -240,7 +241,7 @@
                         Button:
                             text: 'Add'
                             disabled: True if not _odd_issues_text.text or _odd_issues_text.text == '-' else False
-                            on_release: root.load_issues(_odd_issues_container, _odd_issues_text)
+                            on_release: root.load_odd_issues(_status_bar)
 
                 FieldBox:
                     FieldLabel:

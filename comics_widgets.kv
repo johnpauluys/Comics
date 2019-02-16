@@ -234,18 +234,31 @@
             size: self.size
 
 <ComicListWidget@BoxLayout>
+    title_label: _title
+    dropdown: _dropdown
     size_hint: 1, None
     height: self.minimum_height
+    spacing: dp(0)
     BoxLayout:
         size_hint: 1, None
         height: self.minimum_height
         orientation: 'horizontal'
-        Label:
+        InvisiButton:
+            id: _title
             size: dp(350), self.height
-            halign: 'right'
-
+            text_size: self.size
+            halign: 'left'
             text: root.title
+            on_press: root.open_info()
         Label:
             text: root.progress
+    BoxLayout:
+        id: _dropdown
+        size_hint: 1, None
+        height: self.minimum_height
+        orientation: 'horizontal'
+        spacing: dp(10)
+
+
 
 
