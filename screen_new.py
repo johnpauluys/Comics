@@ -493,10 +493,6 @@ class ScreenNew(ComicsScreen):
         """ Sets owned_issues to complete if all issues owned"""
 
         if not self.ongoing_series:
-            print(self.data['owned_issues'])
-            print(self.data['odd_issues'])
-            print(self.standard_issues)
-
             if len(self.data['owned_issues']) == len(self.standard_issues) + len(self.data['odd_issues']):
                 self.data['owned_issues'] = 'complete'
 

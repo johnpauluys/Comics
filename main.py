@@ -10,12 +10,12 @@ from screen_home import ScreenHome
 
 
 # configure app
-# Config.set('kivy', 'desktop', 1)
-# Config.set('graphics', 'borderless', 0)
-# Config.set('graphics', 'resizable', 0)
-# Config.set('graphics', 'window_state', 'maximized')
-Config.set('graphics', 'width', 1366)
-Config.set('graphics', 'height', 768)
+Config.set('kivy', 'desktop', 1)
+Config.set('graphics', 'borderless', 0)
+Config.set('graphics', 'resizable', 0)
+Config.set('graphics', 'window_state', 'maximized')
+# Config.set('graphics', 'width', 1366)
+# Config.set('graphics', 'height', 768)
 
 
 class ComicsApp(App):
@@ -28,7 +28,6 @@ class ComicsApp(App):
 
     # add screen manager and load first page
     pages = ScreenManager()
-    screens = {'screen_home'}
     # pages.add_widget(ScreenHome(name='screen_home'))
 
     def build(self):
