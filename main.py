@@ -28,6 +28,7 @@ class ComicsApp(App):
 
     # add screen manager and load first page
     pages = ScreenManager()
+    screens = {'screen_home'}
     # pages.add_widget(ScreenHome(name='screen_home'))
 
     def build(self):
@@ -41,6 +42,15 @@ class ComicsApp(App):
     def db_cursor(self):
         """ Return database cursor """
         return self.conn.cursor()
+
+    def switch_screen(self, screen_name):
+        if self.pages.current == screen_name:
+            print('already at current screen')
+            return
+        if not self.pages.has_screen(screen_name):
+            if screen_name == 'screen_new':
+                self.pages.add_widget(ScreenNew(name='screen_new'))
+        self.pages.current = screen_name
 
     def create_comics_database(self):
         """ Create a database, is it doesn't exist already"""

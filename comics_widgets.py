@@ -411,3 +411,40 @@ class StatusBar(FieldBox):
         self.add_widget(yes)
 
 
+class ComicListWidget(BoxLayout):
+
+    title = StringProperty()
+    progress = StringProperty()
+
+    def __init__(self, title, volume, format_, standard_issues, odd_issues, owned_issues,
+                 other_editions, start_date, end_date, notes, issue_notes, **kwargs):
+        super(ComicListWidget, self).__init__(**kwargs)
+        self.title = title
+        self.volume = volume
+        self.format = format_
+        self.standard_issues = standard_issues
+        self.odd_issues = odd_issues
+        self.owned_issues = owned_issues
+        self.other_editions = other_editions
+        self.start_date = start_date
+        self.end_date = end_date
+        self.note = notes
+        self.issue_notes = issue_notes
+
+        self.progress = self.get_progress()
+
+    def get_progress(self):
+
+        if self.owned_issues != 'complete':
+            if isinstance(self.standard_issues, int):
+                total_issues = self.standard_issues
+                if self.odd_issues:
+                    total_issues += len(self.odd_issues)
+                owned_issues = len(self.owned_issues)
+                return "{}/{} ({:.1%})".format(owned_issues, total_issues, owned_issues/total_issues)
+        else:
+            return 'complete'
+
+
+
+

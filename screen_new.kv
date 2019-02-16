@@ -27,11 +27,20 @@
         id: _screen_title
         pos_hint: {'top': 1}
         text: "Holger's Comic Collection "
-    Label:
-        id: _page_title
-        pos: dp(125), _screen_content.top
-        font_size: sp(23)
-        text: "Add a new comic"
+    BoxLayout:
+        orientation: 'horizontal'
+        pos: dp(0), _screen_content.top
+
+        InvisiButton:
+            id: home_button
+            font_size: sp(23)
+            text: "Home"
+            on_press: app.switch_screen('screen_home')
+        InvisiButton:
+            id: add_new_button
+            font_size: sp(23)
+            text: "Add New Comic"
+            on_press: app.switch_screen('screen_new')
     ScreenContainer:
         id: _screen_content
         pos: 0, _status_bar.top

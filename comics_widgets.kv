@@ -232,3 +232,21 @@
         Rectangle:
             pos: self.pos
             size: self.size
+
+<ComicListWidget@BoxLayout>
+    size_hint: 1, None
+    height: self.minimum_height
+    BoxLayout:
+        size_hint: 1, None
+        height: self.minimum_height
+        orientation: 'horizontal'
+        Label:
+            texture: self.text_size
+            size: dp(350), self.height
+            halign: 'right'
+
+            text: root.title
+        Label:
+            text: root.progress
+
+

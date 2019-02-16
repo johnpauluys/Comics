@@ -490,16 +490,14 @@ class ScreenNew(ComicsScreen):
             self.data['owned_issues'].remove(self.errors.pop())
 
     def check_collection_complete(self):
-        """ Sets owned_issues to complete if all issues owened"""
+        """ Sets owned_issues to complete if all issues owned"""
 
         if not self.ongoing_series:
+            print(self.data['owned_issues'])
+            print(self.data['odd_issues'])
+            print(self.standard_issues)
 
-            complete = True
-            for i in self.data['owned_issues']:
-                if i not in self.standard_issues and i not in self.data['odd_issues']:
-                    complete = False
-
-            if complete:
+            if len(self.data['owned_issues']) == len(self.standard_issues) + len(self.data['odd_issues']):
                 self.data['owned_issues'] = 'complete'
 
     def sql_insert_from_dict(self, dictionary, table_name):

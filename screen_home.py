@@ -5,7 +5,7 @@ from kivy.uix.label import Label
 from json import dumps, loads
 from re import match
 
-from comics_widgets import AnnualsEditionBox, ComicsScreen, IssueNoteBox, IssueToggleButton, OtherEditionBox, SpecialIssueNoteInputBox
+from comics_widgets import ComicListWidget, ComicsScreen
 
 
 Builder.load_file('screen_home.kv')
@@ -62,12 +62,25 @@ class ScreenHome(ComicsScreen):
     def show_titles(self, titles):
         """ Load title widgets """
 
+        if self.titles_container.children:
+            self.titles_container.clear_widgets()
+
         for t in titles:
             # append '*' to inter company titles
             if 'publishers' in t:
                 t['title'] += '*'
 
-            title_label = Label(text=t['title'])
+            title_label = ComicListWidget(t['title'],
+                                          t['volume'],
+                                          t['format'],
+                                          t['standard_issues'],
+                                          t['odd_issues'],
+                                          t['owned_issues'],
+                                          t['other_editions'],
+                                          t['start_date'],
+                                          t['end_date'],
+                                          t['notes'],
+                                          t['issue_notes'])
             self.titles_container.add_widget(title_label)
 
     def get_publisher_titles(self, cur, p_id):
@@ -112,7 +125,9 @@ class ScreenHome(ComicsScreen):
                 except KeyError:
                     pass
             if title['owned_issues'] != 'complete':
-                title['owned_issues'] = loads(titles_list['owned_issues'])
+                print(type(title['owned_issues']))
+                print(title['owned_issues'])
+                title['owned_issues'] = loads(title['owned_issues'])
 
         return titles_list
 
