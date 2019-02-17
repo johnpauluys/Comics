@@ -1,12 +1,9 @@
 from kivy.lang import Builder
-from kivy.properties import BooleanProperty, DictProperty, ListProperty, NumericProperty, ObjectProperty, StringProperty
-from kivy.uix.label import Label
+from kivy.properties import DictProperty, ListProperty, ObjectProperty
 
-from json import dumps, loads
-from re import match
+from json import loads
 
 from comics_widgets import ComicListWidget, ComicsScreen
-
 
 Builder.load_file('screen_home.kv')
 
@@ -24,26 +21,15 @@ class ScreenHome(ComicsScreen):
     publisher_keys = ListProperty()
     inter_keys = ListProperty()
 
-    def prepare_variables(self, cur):
+    def prepare_screen(self, cur):
         """ Set up class """
+
         self.publishers = self.set_publishers(cur)
         self.publisher_keys = self.get_table_fields(cur, self.publishers[1])
         self.inter_keys = self.get_table_fields(cur, 'InterCompany')
 
         titles = self.load_all_titles(cur)
         self.show_titles(titles)
-
-    def load_all_titles(self, cur):
-        """ Return sorted list of all titles by all publishers """
-
-        titles = []
-        # get titles from publishers
-        for p_id in self.publishers:
-            titles += self.get_publisher_titles(cur, p_id)
-        # get titles from inter company cross overs
-        titles += self.get_inter_company_titles(cur)
-
-        return self.sort_ignore_prefix(titles)
 
     @staticmethod
     def set_publishers(cur):
@@ -59,43 +45,34 @@ class ScreenHome(ComicsScreen):
         cur.execute("SELECT * FROM {}".format(table_name)).fetchone()
         return list(map(lambda a: a[0], cur.description))
 
-    def show_titles(self, titles):
-        """ Load title widgets """
+    def load_all_titles(self, cur):
+        """ Return sorted list of all titles by all publishers """
+        titles = []
+        # get titles from publishers
+        for p_id in self.publishers:
+            titles += self.get_publisher_titles(cur, p_id)
+        # get titles from inter company cross overs
+        titles += self.get_inter_company_titles(cur)
 
-        if self.titles_container.children:
-            self.titles_container.clear_widgets()
-
-        for t in titles:
-            # append '*' to inter company titles
-            if 'publishers' in t:
-                t['title'] += '*'
-
-            title_label = ComicListWidget(t['title'],
-                                          t['volume'],
-                                          t['format'],
-                                          t['standard_issues'],
-                                          t['odd_issues'],
-                                          t['owned_issues'],
-                                          t['other_editions'],
-                                          t['start_date'],
-                                          t['end_date'],
-                                          t['notes'],
-                                          t['issue_notes'])
-            self.titles_container.add_widget(title_label)
+        return self.sort_ignore_prefix(titles)
 
     def get_publisher_titles(self, cur, p_id):
         """ Return a list of titles [dict] by publisher """
-
         # set table name
-        table = self.get_publisher_table(self.publishers[p_id])
+        publisher = self.publishers[p_id]
+        table = self.get_publisher_table_name(publisher)
         # get titles from db
         titles = cur.execute("SELECT * FROM {}".format(table)).fetchall()
+        titles = self.cleanup_titles(titles, self.publisher_keys)
+        # add publisher field
+        # TODO this was just a quick fix, refactor and create cleaner code
+        for title in titles:
+            title['publisher'] = publisher
 
-        return self.cleanup_titles(titles, self.publisher_keys)
+        return titles
 
     def get_inter_company_titles(self, cur):
         """ Return a list of inter company cross over titles """
-
         titles = cur.execute("SELECT * FROM InterCompany").fetchall()
         return self.cleanup_titles(titles, self.inter_keys)
 
@@ -103,39 +80,83 @@ class ScreenHome(ComicsScreen):
         """ Zip dictionary and jsonify dicts and lists from database """
         titles = [self.zip_titles(t, keys) for t in titles]
         titles = self.json_loads_dict(titles)
-
+        titles = self.set_none_values(titles)
         return titles
 
     @staticmethod
     def zip_titles(sql_tuple, keys):
         """ Return a dictionary zipped from list of keys and sql tuples"""
-
         return dict(zip(keys, sql_tuple))
 
-    @staticmethod
-    def json_loads_dict(titles_list):
+    def json_loads_dict(self, titles_list):
         """ json.loads all fields where possible and return jsonified dict """
 
-        jsonable_fields = ['odd_issues', 'other_editions', 'issue_notes', 'publishers']
+        json_fields = ['odd_issues', 'other_editions', 'issue_notes']
         for title in titles_list:
-            for f in jsonable_fields:
+            for field in json_fields:
                 try:
-                    if title[f]:
-                        title[f] = loads(title[f])
+                    if title[field]:
+                        title[field] = loads(title[field])
                 except KeyError:
                     pass
             if title['owned_issues'] != 'complete':
                 title['owned_issues'] = loads(title['owned_issues'])
-
+            # set publishers
+            if 'publishers' in title:
+                # create string from list of publishers
+                title['publishers'] = ', '.join(sorted(self.publishers[i] for i in loads(title['publishers'])))
         return titles_list
 
     @staticmethod
-    def get_publisher_table(publisher):
-        return publisher.replace(' ', '_')
+    def set_none_values(titles):
+        """ Return appropriate (empty) data types from db NULL entries """
+        for title in titles:
+            if not title['notes']:
+                title['notes'] = ''
+            if not title['issue_notes']:
+                title['issue_notes'] = {}
+        return titles
 
-    @staticmethod
-    def sort_ignore_prefix(unsorted_list, ignore='the '):
-        """ Return list sorted database indices ignore specified prefix """
+    def show_titles(self, titles):
+        """ Load title widgets """
 
-        # sort list ignoring 'the' (default)
-        return sorted(unsorted_list, key=lambda a: a['title'][len(ignore):] if a['title'].lower().startswith(ignore) else a['title'])
+        # clear widgets for a fresh reload
+        if self.titles_container.children:
+            self.titles_container.clear_widgets()
+
+        for t in titles:
+            # change title to reflect volume number
+            if t['volume']:
+                t['title'] += " (Vol. {})".format(str(t['volume']))
+            # append '*' to inter company titles
+            if 'publishers' in t:
+                t['title'] += '*'
+                title_label = ComicListWidget(t['title'],
+                                              t['publishers'],
+                                              t['volume'],
+                                              t['format'],
+                                              t['standard_issues'],
+                                              t['odd_issues'],
+                                              t['owned_issues'],
+                                              t['other_editions'],
+                                              t['start_date'],
+                                              t['end_date'],
+                                              t['group'],
+                                              t['notes'],
+                                              t['issue_notes'])
+            else:
+                # TODO part of earlier quick fix. surely this can be shortened
+                title_label = ComicListWidget(t['title'],
+                                              t['publisher'],
+                                              t['volume'],
+                                              t['format'],
+                                              t['standard_issues'],
+                                              t['odd_issues'],
+                                              t['owned_issues'],
+                                              t['other_editions'],
+                                              t['start_date'],
+                                              t['end_date'],
+                                              t['group'],
+                                              t['notes'],
+                                              t['issue_notes'])
+            self.titles_container.add_widget(title_label)

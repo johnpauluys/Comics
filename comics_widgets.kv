@@ -233,7 +233,7 @@
             pos: self.pos
             size: self.size
 
-<ComicListWidget@BoxLayout>
+<ComicListWidget>
     title_label: _title
     dropdown: _dropdown
     size_hint: 1, None
@@ -250,15 +250,68 @@
             halign: 'left'
             text: root.title
             on_press: root.open_info()
-        Label:
+        InvisiButton:
             text: root.progress
+            on_press: root.open_issues() if not self.text == 'complete' else None
     BoxLayout:
+        spacing: dp(10)
         id: _dropdown
         size_hint: 1, None
         height: self.minimum_height
-        orientation: 'horizontal'
+        orientation: 'vertical'
         spacing: dp(10)
 
+<InfoBox@BoxLayout>
+#    canvas:
+#        Color:
+#            rgba: 0, 1, 0 , .2
+#        Rectangle:
+#            pos: self.pos
+#            size: self.size
+    size_hint: 1, None
+    height: self.minimum_height
 
-
+<InfoDropDownContent>
+    size_hint: 1, None
+    height: self.minimum_height
+    orientation: 'horizontal'
+    padding: dp(20), dp(5), dp(20), dp(10)
+    InfoBox:
+        InfoBox:
+            orientation: 'horizontal'
+            Label:
+                text: 'Publisher:' if ',' not in root.publisher else 'Publishers:'
+            Label:
+                text: root.publisher
+        InfoBox:
+            orientation: 'horizontal'
+            Label:
+                text: 'Issues in run:'
+            Label:
+                text: root.standard_issues
+        InfoBox:
+            orientation: 'horizontal'
+            Label:
+                text: 'Run Dates:' if '-' in root.dates else 'Date:'
+            Label:
+                text: root.dates
+        InfoBox:
+            Label:
+                text: 'Title Notes:' if root.title_notes else ''
+            InfoBox:
+                padding: dp(10), 0, dp(10), 0
+                Label:
+                    text_size: self.parent.width, None
+                    height: self.texture_size[1]
+                    text: root.title_notes
+        InfoBox:
+            Label:
+                text: 'Issue Notes:' if root.issue_notes else ''
+            InfoBox:
+                padding: dp(10), 0, dp(10), 0
+                Label:
+                    text_size: self.parent.width, None
+                    height: self.texture_size[1]
+                    text: root.issue_notes
+    InfoBox:
 

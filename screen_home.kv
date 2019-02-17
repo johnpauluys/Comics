@@ -2,8 +2,7 @@
 
 <ScreenHome>:
     on_enter: _status_bar.set_status("This is a list of all comics in database")
-    on_enter: self.prepare_variables(app.db_cursor())
-    #on_enter: self.load_comic_titles(app.db_cursor())
+    on_enter: self.prepare_screen(app.db_cursor())
 
     titles_container: _titles_container
     status_bar: _status_bar
@@ -32,26 +31,24 @@
         height: root.height - (_screen_title.height + 2 * _status_bar.height)
         disabled: True if _status_bar.screen_disabled else False
 
-# Column 1
         BoxLayout:
+            # main box
             orientation: 'horizontal'
             BoxLayout:
+                # filter column
                 size_hint: None, 1
-                width: dp(250)
+                width: dp(150)
             BoxLayout:
-                orientation: 'vertical'
-
+                # titles column
                 ScrollView:
-                    id: __temp
                     size_hint: 1, None
                     height: self.parent.height
-                    TestBox:
+                    BoxLayout:
                         id: _titles_container
                         size_hint_y: None
                         height: self.minimum_height
-
-
     BoxLayout:
+        # status bar
         padding: dp(10)
         FieldBox:
             canvas.before:

@@ -1,12 +1,12 @@
 from kivy.lang import Builder
-from kivy.properties import BooleanProperty, DictProperty, ListProperty, NumericProperty, ObjectProperty, StringProperty
+from kivy.properties import BooleanProperty, DictProperty, ListProperty, NumericProperty, ObjectProperty
 from kivy.uix.label import Label
 
 from json import dumps
 from re import match
 
-from comics_widgets import AnnualsEditionBox, ComicsScreen, IssueNoteBox, IssueToggleButton, OtherEditionBox, SpecialIssueNoteInputBox
-
+from comics_widgets import AnnualsEditionBox, ComicsScreen, IssueNoteBox,\
+                           IssueToggleButton, OtherEditionBox, SpecialIssueNoteInputBox
 
 Builder.load_file('screen_new.kv')
 
@@ -396,7 +396,7 @@ class ScreenNew(ComicsScreen):
             return 'InterCompany'
         else:
             # if only one publisher is selected/entered, format name
-            return publisher_list[0].replace(' ', '_')
+            return self.get_publisher_table_name(publisher_list[0])
 
     def set_publishers(self, db_cursor, publisher_list):
         """ Return a sorted list of publisher id numbers """
