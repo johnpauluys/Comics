@@ -1,5 +1,5 @@
 from kivy.lang import Builder
-from kivy.properties import BooleanProperty, DictProperty, ListProperty, NumericProperty, ObjectProperty, StringProperty
+from kivy.properties import BooleanProperty, DictProperty, NumericProperty, ObjectProperty, StringProperty
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.button import Button
@@ -70,7 +70,7 @@ class IssueNumberInput(MyTextInput):
 
     def validate_input(self, user_input):
         """ Only allow standard issue numbers and issue ranges eg. 24-120 """
-
+        return True
         if match(r'^[1-9]\d{0,3}(\+|-[1-9]\d{0,3})?$', user_input):
             return True
         return False
@@ -153,7 +153,6 @@ class PredictiveTextInput(MyTextInput):
 
     def suggest_text(self, db_cursor, db_table, table_field):
         """ Display suggested text """
-
         # reset suggestions
         self.suggestion_text = '  '
         self.current_suggested_word = ''
@@ -199,7 +198,7 @@ class PredictiveTextInput(MyTextInput):
                     self.current_suggested_word = ''
 
     @staticmethod
-    def get_text_suggestion(self, db_cursor, text, db_table, table_field):
+    def get_text_suggestion(db_cursor, text, db_table, table_field):
         """ Search database for possible string suggestions matching last word of user input """
 
         # search database
@@ -475,16 +474,23 @@ class ComicListWidget(BoxLayout):
         """ Return a percentage string of owned vs available comics """
         if self.owned_issues != 'complete':
             # check if title is still ongoing
-            if isinstance(self.standard_issues, int):
+            ongoing = ('', '')
+            if isinstance(self.standard_issues, str):
+                total_issues = int(self.standard_issues[:-1])
+                ongoing = ('+', '~')
+            elif isinstance(self.standard_issues, int):
                 # set total issue count
                 total_issues = self.standard_issues
-                if self.odd_issues:
-                    # add odd issues, if any
-                    total_issues += len(self.odd_issues)
-                # set total owned issue count
-                owned_issues = len(self.owned_issues)
-                # return percentage
-                return "{}/{} ({:.1%})".format(owned_issues, total_issues, owned_issues/total_issues)
+            else:
+                return '???'
+            if self.odd_issues:
+                # add odd issues, if any
+                total_issues += len(self.odd_issues)
+            # set total owned issue count
+            owned_issues = len(self.owned_issues)
+            # return percentage
+            return "{}/{}{} ({}{:.1%})".format(owned_issues, total_issues,
+                                               ongoing[0], ongoing[1], owned_issues/total_issues)
 
         return self.owned_issues
 

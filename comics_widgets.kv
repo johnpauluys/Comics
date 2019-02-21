@@ -61,6 +61,20 @@
     # prevent user from typing non numeric characters
     on_text: self.text = self.text[:-1] if not self.text.isnumeric() and self.input_type == 'number' else self.text
 
+<PublisherToggle@ToggleButton>
+#    id: _dc_toggle
+    publisher: 'publisher_name'
+    file_path: 'images/buttons/' + self.publisher
+    background_normal: self.file_path + '_normal.png'
+    background_down: self.file_path + '_down.png'
+    background_disabled_normal: self.file_path + '_disabled_normal.png'
+    background_disabled_down: self.file_path + '_disabled_down.png'
+    border: 0, 0, 0, 0
+    on_state: self.parent._root.publisher_count += 1 if self.state == 'down' else -1
+#    on_release: self.get_focus_next().focus = True if self.parent._root.publisher_count else False
+#    on_release: _other_publisher_text.focus = True if not root.publisher_count and _other_publisher_toggle.state == 'down' and _other_publisher_text else False
+
+
 <PredictiveTextInput>:
     text_validate_unfocus: False
     on_focus: self.suggestion_text = '  '; self.current_suggested_word = ''
@@ -92,6 +106,11 @@
     size_hint: .3, 1
     shorten: True
     shorten_from: 'right'
+
+<BlueLabel@Label>:
+    font_size: sp(17)
+    color: (.3, .3, .3, 1) if not self.text else (.2, .7, .9, 1)
+    font_name: 'fonts/ComicBook.otf'
 
 <IssueNumberInput>
     size_hint_x: None

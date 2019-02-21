@@ -141,7 +141,7 @@ class ScreenHome(ComicsScreen):
                                               t['other_editions'],
                                               t['start_date'],
                                               t['end_date'],
-                                              t['group'],
+                                              t['grouping'],
                                               t['notes'],
                                               t['issue_notes'])
             else:
@@ -156,7 +156,7 @@ class ScreenHome(ComicsScreen):
                                               t['other_editions'],
                                               t['start_date'],
                                               t['end_date'],
-                                              t['group'],
+                                              t['grouping'],
                                               t['notes'],
                                               t['issue_notes'])
             self.titles_container.add_widget(title_label)

@@ -1,5 +1,5 @@
 from kivy.lang import Builder
-from kivy.properties import BooleanProperty, DictProperty, ListProperty, NumericProperty, ObjectProperty
+from kivy.properties import BooleanProperty, DictProperty, ListProperty, NumericProperty, ObjectProperty, StringProperty
 from kivy.uix.label import Label
 
 from json import dumps
@@ -29,6 +29,8 @@ class ScreenNew(ComicsScreen):
     issue_note_container = ObjectProperty()
     odd_issues_container = ObjectProperty()
 
+    group_chain = ListProperty()
+    grouping_text = StringProperty()
     standard_issues_container = ObjectProperty()
 
     edition_name_text = ObjectProperty()
@@ -49,6 +51,53 @@ class ScreenNew(ComicsScreen):
 
     # error handling
     errors = ListProperty()
+
+    def on_group_chain(self, instance, value):
+        """ Update grouping text to show current selected group(s) """
+        self.grouping_text = ' - '.join(value)
+
+    def set_grouping_info(self, cur, group_name_field):
+        """ Set grouping info list to represent grouping chain """
+
+        # create a list text from group_name_field, before clearing it
+        group_name = group_name_field.text.split(',')
+        group_name_field.text = ''
+
+        for g in group_name:
+            # strip whitespace
+            g = g.strip()
+            # return (id, group_name, parent_id) if group exists in database
+            group_info = self.check_group_exists(cur, g)
+
+            if group_info:
+                # if group (g) exists, create group chain
+                self.group_chain = self.create_group_chain(cur, group_info)
+
+            else:
+                # if group doesn't exist, append it to group chain
+                self.group_chain.append(g)
+
+    def check_group_exists(self, cur, group_name):
+        """ Check whether entered group name exists in data base """
+        # check database for group and return result
+        return cur.execute("SELECT * FROM GROUPS WHERE name IS '{}' COLLATE NOCASE".format(group_name)).fetchone()
+
+    def create_group_chain(self, cur, group_info):
+
+        # set group_name as group_chain's first value
+        group_chain = [group_info[1]]
+        # and set previous chain to current group's parent
+        prev_link = group_info[-1]
+
+        while prev_link:
+            # get current group's parent
+            parent_info = cur.execute("SELECT * FROM GROUPS WHERE id IS '{}'".format(prev_link)).fetchone()
+            # set prev_link to current parents' parent_id
+            prev_link = parent_info[-1]
+            # insert parent's name into beginning of group_tree list
+            group_chain.insert(0, parent_info[1])
+
+        return group_chain
 
     def on_special_issues(self, instance, value):
 
@@ -80,8 +129,10 @@ class ScreenNew(ComicsScreen):
         """ Add issue buttons to issues container box """
 
         # fill the first spots with blank, if necessary
-        if issue_list == self.standard_issues and issue_list[0] != 1:
-            for i in range(issue_list[0] % 10):
+        # if issue_list == self.standard_issues and issue_list[0] != 1:
+        if issue_list == self.standard_issues:
+
+            for i in range(issue_list[0]-1 % 10):
                 container.add_widget(Label(size_hint=(1, 1)))
 
         for i in issue_list:
@@ -408,6 +459,22 @@ class ScreenNew(ComicsScreen):
 
         return sorted(publishers)
 
+    def set_group(self, app, cur):
+        """ Prepare data['grouping'] for database """
+        # set main group, which has no parent
+        parent = None
+        for g in self.group_chain:
+            # query database to see if group exists
+            current = cur.execute("SELECT * FROM GROUPS WHERE name IS '{}'".format(g)).fetchone()
+            if current:
+                # if it exists, nothing has to happen, except that it now becomes a potential parent
+                parent = current[0]
+            else:
+                # create database entry if group doesn't exist
+                parent = app.add_new_group(cur, g, parent)
+        # the last group_name should now be the potential parent and its is value gets returned
+        return parent
+
     def set_format(self, db_cursor):
         """ Sets format field to id of selected format
             If no id is available, format will be add to formats table
@@ -518,15 +585,13 @@ class ScreenNew(ComicsScreen):
             # escape problem characters
             if isinstance(v, str) and "'" in v:
                 print("editing", k)
-                # for old, new in [('&', '&&'), ("'", "''"), ('%', '%%')]:
-                #     v = v.replace(old, new)
                 v = v.replace("'", "''")
                 print("to:", v)
 
             # check if cols and vals already have values, if so add commas
             if cols:
                 cols += ", "
-            cols += str(k)
+            cols += "'{}'".format(str(k))
 
             if vals:
                 vals += ", "
@@ -607,6 +672,10 @@ class ScreenNew(ComicsScreen):
 
         # check collection completeness
         self.check_collection_complete()
+
+        # set grouping
+        self.data['grouping'] = self.set_group(app, cur)
+
 
         print()
         for i in sorted(self.data):

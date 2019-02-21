@@ -31,7 +31,6 @@
     BoxLayout:
         orientation: 'horizontal'
         pos: dp(0), _screen_content.top
-
         InvisiButton:
             id: home_button
             font_size: sp(23)
@@ -63,61 +62,38 @@
                         valign: 'center'
                     FieldBox:
                         id: _publisher_images
+                        _root: root
                         spacing: 0
                         height: dp(50)
                         halign: 'center'
-                        ToggleButton:
+                        PublisherToggle:
                             id: _dc_toggle
                             publisher: 'dc'
-                            background_normal: 'images/' + self.publisher + '_normal.png'
-                            background_down: 'images/' + self.publisher + '_down.png'
-                            background_disabled_normal: 'images/' + self.publisher + '_disabled_normal.png'
-                            background_disabled_down: 'images/' + self.publisher + '_disabled_down.png'
-                            border: 0, 0, 0, 0
                             size: dp(50), dp(50)
-                            on_state: root.publisher_count += 1 if self.state == 'down' else -1
                             on_release: _title_text.focus = True if root.publisher_count else False
                             on_release: _other_publisher_text.focus = True if not root.publisher_count and _other_publisher_toggle.state == 'down' and _other_publisher_text else False
                         Label:
                             width: (_publisher_images.width - (_dc_toggle.width + _marvel_toggle.width + _dark_horse_toggle.width + _image_toggle.width + _other_publisher_toggle.width)) / 4
-                        ToggleButton:
+                        PublisherToggle:
                             id: _marvel_toggle
                             publisher: 'marvel'
-                            background_normal: 'images/' + self.publisher + '_normal.png'
-                            background_down: 'images/' + self.publisher + '_down.png'
-                            background_disabled_normal: 'images/' + self.publisher + '_disabled_normal.png'
-                            background_disabled_down: 'images/' + self.publisher + '_disabled_down.png'
-                            border: 0, 0, 0, 0
                             size: dp(110), dp(50)
-                            on_state: root.publisher_count += 1 if self.state == 'down' else -1
                             on_release: _title_text.focus = True if root.publisher_count else False
                             on_release: _other_publisher_text.focus = True if not root.publisher_count and _other_publisher_toggle.state == 'down' and _other_publisher_text else False
                         Label:
                             width: (_publisher_images.width - (_dc_toggle.width + _marvel_toggle.width + _dark_horse_toggle.width + _image_toggle.width + _other_publisher_toggle.width)) / 4
-                        ToggleButton:
+                        PublisherToggle:
                             id: _dark_horse_toggle
                             publisher: 'dark_horse'
-                            background_normal: 'images/' + self.publisher + '_normal.png'
-                            background_down: 'images/' + self.publisher + '_down.png'
-                            background_disabled_normal: 'images/' + self.publisher + '_disabled_normal.png'
-                            background_disabled_down: 'images/' + self.publisher + '_disabled_down.png'
-                            border: 0, 0, 0, 0
                             size: dp(34), dp(50)
-                            on_state: root.publisher_count += 1 if self.state == 'down' else -1
                             on_release: _title_text.focus = True if root.publisher_count else False
                             on_release: _other_publisher_text.focus = True if not root.publisher_count and _other_publisher_toggle.state == 'down' and _other_publisher_text else False
                         Label:
                             width: (_publisher_images.width - (_dc_toggle.width + _marvel_toggle.width + _dark_horse_toggle.width + _image_toggle.width + _other_publisher_toggle.width)) / 4
-                        ToggleButton:
+                        PublisherToggle:
                             id: _image_toggle
                             publisher: 'image'
-                            background_normal: 'images/' + self.publisher + '_normal.png'
-                            background_down: 'images/' + self.publisher + '_down.png'
-                            background_disabled_normal: 'images/' + self.publisher + '_disabled_normal.png'
-                            background_disabled_down: 'images/' + self.publisher + '_disabled_down.png'
-                            border: 0, 0, 0, 0
                             size: dp(24), dp(50)
-                            on_state: root.publisher_count += 1 if self.state == 'down' else -1
                             on_release: _title_text.focus = True if root.publisher_count else False
                             on_release: _other_publisher_text.focus = True if not root.publisher_count and _other_publisher_toggle.state == 'down' and _other_publisher_text else False
                         Label:
@@ -151,14 +127,13 @@
                             on_focus: _status_bar.set_status(self.default_text) if self.focus else _status_bar.clear_status()
                             on_text: _status_bar.set_status(self.default_text) if self.focus else None
                             on_text: _status_bar.set_status("Press enter to auto complete suggested text. Current suggested text is \"" + self.current_suggested_word + "\"") if self.current_suggested_word and self.text else None
-
                 FieldBox:
                     FieldLabel:
                         text: "Title"
                     TextInput:
                         id: _title_text
                         text_validate_unfocus: False
-                        on_text_validate: _format_text.focus = True if self.text else False
+                        on_text_validate: self.get_focus_next().focus = True if self.text else False
                         on_focus: root.data['title'] = self.text
                         # status_bar
                         on_focus: _status_bar.set_status("Enter the comic's title.") if self.focus else _status_bar.clear_status()
@@ -239,7 +214,7 @@
                             default_text: "Enter any uncommon issue numbers, eg. 0, -1, -1.25, -1.5, etc. For variations enter issue number plus _, eg. 1_, 2_a, 2_b."
                             on_focus: _status_bar.set_status(self.default_text) if self.focus else _status_bar.clear_status()
                         Button:
-                            text: 'Add'
+                            text: 'add'
                             disabled: True if not _odd_issues_text.text or _odd_issues_text.text == '-' else False
                             on_release: root.load_odd_issues(_status_bar)
 
@@ -283,7 +258,7 @@
                                     default_text: "Enter the number of issues" + self.default_2
                                     on_focus: _status_bar.set_status(self.default_text) if self.focus else _status_bar.clear_status()
                                 Button:
-                                    text: 'Add'
+                                    text: 'add'
                                     disabled: True if _edition_issues_text.disabled or not _edition_issues_text.text or _edition_name_text.text in root.other_editions_data else False
                                     on_press: root.add_new_edition(_editions_container, _edition_name_text.text, int(_edition_issues_text.text)); _edition_name_text.focus = True
                 FieldBox:
@@ -301,7 +276,7 @@
                             default_text: "Enter year range(s). Entering more complex ranges is also possible, eg. 1981-1984, 1-3, 1988, 4, 1990-1995"
                             on_focus: _status_bar.set_status(self.default_text) if self.focus else _status_bar.clear_status()
                         Button:
-                            text: 'Add'
+                            text: 'add'
                             disabled: True if _annual_issues_text.disabled or _edition_issues_text.text or _edition_name_text.text in root.other_editions_data or not _annual_issues_text.text else False
                             on_release: root.add_annuals(_editions_container, _edition_name_text, _annual_issues_text)
                 FieldBox:
@@ -352,10 +327,11 @@
                             on_focus: _status_bar.set_status(self.default_text) if self.focus else _status_bar.clear_status()
                         Button:
                             disabled: True if _issue_note_text.disabled == True or not _issue_note_text.text or _issue_number_text.text in root.data['issue_notes'] else False
-                            text: 'Add'
+                            text: 'add'
                             on_release: root.add_issue_note(_issue_number_text, _issue_note_text) if _issue_note_text.text else None
             BoxLayout:
                 id: _special_issue_notes
+
                 size_hint: 1, None
                 height: self.minimum_height
             ScrollView:
@@ -369,49 +345,97 @@
 
 # standard issues box starts here
         BoxLayout:
-            id: _column2
-            disabled: True if not _odd_issues_container.children and not _standard_issues_container.children else False
-            FieldBox:
-                id: _issues_box_title
-                Label:
-                    text: "select owned issue(s)"
-            FieldBox:
-                id: _issue_buttons_box
-                size_hint_x: 1
-                width: self.minimum_width
-                TextInput:
-                    id: _select_range_input
-                    text_validate_unfocus: False
-                    size_hint: 1, 1
-                    on_text_validate: root.select_issue_range(self, (_standard_issues_container, _odd_issues_container))
-                Button:
-                    text: 'select range'
-                    disabled: False if _select_range_input.text else True
-                    on_release: root.select_issue_range(_select_range_input, (_standard_issues_container, _odd_issues_container))
-                Button:
-                    disabled: False if _standard_issues_container.children or _odd_issues_container.children else True
-                    text: 'all'
-                    on_release: root.select_all_issues((_standard_issues_container, _odd_issues_container))
-                Button:
-                    disabled: False if _standard_issues_container.children or _odd_issues_container.children else True
-                    text: 'none'
-                    on_release: root. deselect_all_issues((_standard_issues_container, _odd_issues_container))
-            GridLayout:
-                id: _odd_issues_container
-                pos:
-                cols: 10
-            ScrollView:
-                height: self.parent.height - (_issue_buttons_box.height + _issues_box_title.height + _odd_issues_container.height)
+            BoxLayout:
+                size_hint_y: None
+                height: self.minimum_height
+                padding: 0, 0, 0, dp(32)
+                FieldBox:
+                    Label:
+                        id: _grouping_label
+                        font_size: sp(15)
+                        text: 'Grouping'
+                        size_hint_y: 1
+                        valign: 'center'
+                    PredictiveTextInput:
+                        id: _group_text
+                        text_validate_unfocus: False
+                        on_text: self.suggest_text(app.db_cursor(), 'GROUPS', 'name') if self.text else None
+                        on_text: self.current_suggested_word = '' if not self.text else self.current_suggested_word
+                        on_text_validate: self.complete_string(ending='') if self.current_suggested_word else None
+                        on_text_validate: root.set_grouping_info(app.db_cursor(), self) if not self.current_suggested_word and self.text else None
+                        on_text_validate: self.get_focus_next().focus = True if not self.text else False
+#                        on_focus: root.data['grouping'] = self.text
+                        # status_bar
+                        on_focus: _status_bar.set_status("Enter grouping info if needed") if self.focus else _status_bar.clear_status()
+                    Button:
+                        text: 'add'
+                        disabled: True if not _group_text.text else False
+                        on_release: root.set_grouping_info(app.db_cursor(), _group_text)
+                    Button:
+                        text: 'clear last'
+                        disabled: True if len(root.group_chain) == 0 else False
+                        on_release: del root.group_chain[-1]; _group_text.text = ''
+                    Button:
+                        text: 'test'
+                        on_release: root.set_group(app, app.db_cursor())
+                BlueLabel:
+                    text: root.grouping_text if root.grouping_text else ' '
+#                    halign: 'center'
+                    width: self.parent.width - _grouping_label.width
+                    size_hint_x: None
+                    pos: _group_text.x, _group_text.y - self.height
+                    text_size: self.width, None
+                    height: self.texture_size[1]
+                    shorten: True
+                    shorten_from: 'left'
+            BoxLayout:
+                disabled: True if not _odd_issues_container.children and not _standard_issues_container.children else False
+                FieldBox:
+                    id: _issues_box_title
+                    Label:
+                        text: "select owned issue(s)"
+                        size_hint_y: 1
+                        valign: 'center'
+
+                FieldBox:
+                    id: _issue_buttons_box
+                    size_hint_x: 1
+                    TextInput:
+                        id: _select_range_input
+                        text_validate_unfocus: False
+                        size_hint: 1, 1
+                        on_text_validate: root.select_issue_range(self, (_standard_issues_container, _odd_issues_container))
+                    Button:
+                        text: 'select range'
+                        disabled: False if _select_range_input.text else True
+                        on_release: root.select_issue_range(_select_range_input, (_standard_issues_container, _odd_issues_container))
+                    Button:
+                        disabled: False if _standard_issues_container.children or _odd_issues_container.children else True
+                        text: 'all'
+                        on_release: root.select_all_issues((_standard_issues_container, _odd_issues_container))
+                    Button:
+                        disabled: False if _standard_issues_container.children or _odd_issues_container.children else True
+                        text: 'none'
+                        on_release: root. deselect_all_issues((_standard_issues_container, _odd_issues_container))
                 GridLayout:
-                    id: _standard_issues_container
-                    _root: root
+                    id: _odd_issues_container
+                    pos:
                     cols: 10
+                ScrollView:
+                    height: self.parent.height - (_issue_buttons_box.height + _issues_box_title.height + _odd_issues_container.height)
+                    GridLayout:
+                        id: _standard_issues_container
+                        _root: root
+                        cols: 10
         BoxLayout:
+            padding: 0, dp(-5)
             size_hint: .5, 1
             FieldBox:
                 Label:
                     id: _editions_label
                     text: "Other Edition(s)"
+                    size_hint_y: 1
+                    valign: 'center'
             ScrollView:
                 height: self.parent.height - _editions_label.height
                 BoxLayout:
@@ -422,12 +446,6 @@
     BoxLayout:
         padding: dp(10)
         FieldBox:
-            canvas.before:
-                Color:
-                    rgba: 0, 0, 0 , .5
-                Rectangle:
-                    pos: self.pos
-                    size: self.size
             StatusBar:
                 id: _status_bar
             Button:
