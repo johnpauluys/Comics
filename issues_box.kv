@@ -1,0 +1,89 @@
+#:kivy 1.10.1
+
+<IssuesBox>:
+#    canvas:
+#        Color:
+#            rgba: 0.2, 0, 0.2 , .8
+#        Rectangle:
+#            pos: self.pos
+#            size: self.size
+    FieldBox:
+        Label:
+            font_size: sp(15)
+            text: 'Enter issues'
+            size_hint_y: 1
+            valign: 'center'
+        TextInput:
+            id: _issues_text
+            text_validate_unfocus: False
+            on_text_validate: root.load_issues(_issues_container, _issues_text.text, root.data) if self.text else None
+            # status_bar
+            default_text: "Enter the number of standard issues and press ENTER. For ongoing series, enter something like \"142+\". Weird things like \"25-132\" would also work."
+            on_focus: root.status_bar.set_status(self.default_text) if self.focus else root.status_bar.clear_status()
+        Button:
+            text: 'add'
+            on_release: root.load_issues(_issues_container, _issues_text.text, root.data) if self.text else None
+    ScrollView:
+#        canvas:
+#            Color:
+#                rgba: 1, 1, 1 , .1
+#            Rectangle:
+#                pos: self.pos
+#                size: self.size
+        height: root.height - _issue_selection_box.height
+        GridLayout:
+            id: _issues_container
+            _root: root
+            cols: 10
+            size_hint: 1, None
+
+
+
+    FieldBox:
+        id: _issue_selection_box
+        size_hint_x: 1
+        TextInput:
+            id: _select_range_input
+            text_validate_unfocus: False
+            size_hint: 1, 1
+            on_text_validate: root.select_issue_range(self, _standard_issues_container)
+        Button:
+            text: 'select range'
+            on_release: root.select_issue_range(_select_range_input, _standard_issues_container)
+        Button:
+            text: 'all'
+            on_release: root.select_all_issues(_standard_issues_container)
+        Button:
+            text: 'none'
+            on_release: root. deselect_all_issues(_standard_issues_container)
+
+<IssueToggleButton>:
+    font_size: sp(15)
+    background_color: .2, .2, .2, 1
+    color: (.5, .5, .5, 1) if self.state == 'normal' else (.2, .7, .9, 1)
+    disabled_color: .2, .2, .2, .5
+    size_hint: 1, None
+    height: dp(35)
+    #valign:'center'
+    allow_no_selection: False
+
+<IssueInfo>:
+    canvas:
+        Color:
+            rgba: 0.2, 0, 0.2 , .8
+        Rectangle:
+            pos: self.pos
+            size: self.size
+    TestBox:
+        orientation: 'horizontal'
+        size_hint_y: None
+        size_hint_x: 1
+        height: self.minimum_height
+        Label:
+            text: 'Issue Info Box'
+        Button:
+            text: 'Press Me'
+            on_release: print(self.parent.pos)
+
+        Button:
+            text: 'Don\'t click me'
