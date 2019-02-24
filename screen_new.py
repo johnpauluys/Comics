@@ -7,6 +7,7 @@ from re import match
 
 from comics_widgets import AnnualsEditionBox, ComicsScreen, IssueNoteBox,\
                            IssueToggleButton, OtherEditionBox, SpecialIssueNoteInputBox
+from issues_box import IssuesBox
 
 Builder.load_file('screen_new.kv')
 
@@ -27,7 +28,7 @@ class ScreenNew(ComicsScreen):
     end_date_text = ObjectProperty()
     special_issue_notes = ObjectProperty()
     issue_note_container = ObjectProperty()
-    odd_issues_container = ObjectProperty()
+    # odd_issues_container = ObjectProperty()
 
     group_chain = ListProperty()
     grouping_text = StringProperty()
@@ -125,77 +126,86 @@ class ScreenNew(ComicsScreen):
             # add issue to data dict
             self.data['issue_notes'][issue_number] = issue_note.strip()
 
-    def populate_issue_container(self, container, issue_list):
-        """ Add issue buttons to issues container box """
-
-        # fill the first spots with blank, if necessary
-        # if issue_list == self.standard_issues and issue_list[0] != 1:
-        if issue_list == self.standard_issues:
-
-            for i in range(issue_list[0]-1 % 10):
-                container.add_widget(Label(size_hint=(1, 1)))
-
-        for i in issue_list:
-            # create button
-            new_issue_toggle = IssueToggleButton(container, self.data, text=str(i))
-            # check whether it should be in a down state
-            if i in self.data['owned_issues']:
-                new_issue_toggle.state = 'down'
-            # add button to container
-            container.add_widget(new_issue_toggle)
-
-        if self.ongoing_series:
-            container.add_widget(Label(size_hint=(1, 1), text='. . .'))
-
-        # fill up empty space to make it took prettier
-        if len(issue_list) + int(self.ongoing_series) < 10:
-            for i in range(10 - len(issue_list) % 10):
-                container.add_widget(Label(size_hint=(1, 1)))
-
-    def load_standard_issues(self):
-        """ Load standard issues based on what user entered """
-
-        # reset ongoing_series
-        self.ongoing_series = False
-        # get stripped text from input field
-        issues = self.standard_issues_text.text.strip()
-
-        # check format of input
-        if not issues:
-            print('no issues')
-            return False
-        elif match(r'^[1-9]\d*[+]$', issues):
-            # handle ongoing series
-            self.ongoing_series = True
-            self.data['standard_issues'] = issues
-            self.standard_issues = list(range(1, int(issues[:-1]) + 1))
-        elif match(r'^[1-9]\d*[\-][1-9]\d*$', issues):
-            # handle ranges, like 25-100, etc.
-            first, last = sorted(issues.split("-"), key=int)
-            self.data['standard_issues'] = '{}-{}'.format(first, last)
-            self.standard_issues = list(range(int(first), int(last) + 1))
-        elif match(r'^[1-9]\d*$', issues):
-            # handle integers
-            self.standard_issues = list(range(1, int(issues) + 1))
-            self.data['standard_issues'] = int(issues)
-        else:
-            # this should never happen with the way issue text input is designed
-            self.status_bar.set_status("Not sure what to do with {} issues. Please check issues field again.", 'notice')
-            self.standard_issues_text.select_all()
-            return False
-
-        # clear standard issue container
-        self.standard_issues_container.clear_widgets()
-        # add issue toggle buttons to container
-        self.populate_issue_container(self.standard_issues_container, self.standard_issues)
-        # focus on next widget
-        if self.standard_issues_text.focus:
-            self.standard_issues_text.get_focus_next().focus = True
-        # check whether odd issues were somehow already entered and populate if necessary
-        if self.odd_issues_text.text:
-            self.load_odd_issues(self.status_bar)
-        return True
-
+    # def populate_issue_container(self, container, issues_dict):
+    #     """ Add issue buttons to issues container box """
+    #
+    #     print(issues_dict)
+    #     # fill the first spots with blank, if necessary
+    #     # if issue_list == self.standard_issues and issue_list[0] != 1:
+    #     # if issues_dict == self.standard_issues:
+    #     #
+    #     #     for i in range(issues_dict[0] - 1 % 10):
+    #     #         container.add_widget(Label(size_hint=(1, 1)))
+    #     #
+    #     # for i in issues_dict:
+    #     #     # create button
+    #     #     new_issue_toggle = IssueToggleButton(container, self.data, text=str(i))
+    #     #     # check whether it should be in a down state
+    #     #     if i in self.data['owned_issues']:
+    #     #         new_issue_toggle.state = 'down'
+    #     #     # add button to container
+    #     #     container.add_widget(new_issue_toggle)
+    #     #
+    #     # if self.ongoing_series:
+    #     #     container.add_widget(Label(size_hint=(1, 1), text='. . .'))
+    #     #
+    #     # # fill up empty space to make it took prettier
+    #     # if len(issues_dict) + int(self.ongoing_series) < 10:
+    #     #     for i in range(10 - len(issues_dict) % 10):
+    #     #         container.add_widget(Label(size_hint=(1, 1)))
+    #
+    # def load_standard_issues(self):
+    #     """ Load standard issues based on what user entered """
+    #
+    #     issue_ranges = self.standard_issues_text.text
+    #
+    #     issues_dict, self.ongoing_series = self.get_issues_dict(issue_ranges)
+    #
+    #         #TODO CONTINUE HERE
+    #
+    #     # clear standard issue container
+    #     self.standard_issues_container.clear_widgets()
+    #     # add issue toggle buttons to container
+    #     self.populate_issue_container(self.standard_issues_container, issues_dict)
+    #     # # focus on next widget
+    #     # if self.standard_issues_text.focus:
+    #     #     self.standard_issues_text.get_focus_next().focus = True
+    #     # # check whether odd issues were somehow already entered and populate if necessary
+    #     # if self.odd_issues_text.text:
+    #     #     self.load_odd_issues(self.status_bar)
+    #     # return True
+    #
+    # def get_issues_dict(self, issue_ranges):
+    #
+    #     print(issue_ranges)
+    #
+    #     on_going = False
+    #
+    #     issues_dict = {}
+    #     for i in [r.strip() for r in issue_ranges.split(',')]:
+    #         # check for ongoing series
+    #         if i.endswith('+'):
+    #             on_going = True
+    #             i = i[:-1]
+    #
+    #         # handle standard issues eg. '20'
+    #         if match(r'^[1-9]\d{0,3}$', i):
+    #
+    #             issues_dict = {**issues_dict, **{k: str(k) for k in range(1, int(i) + 1)}}
+    #
+    #         # handle ranges eg. 1-20, 22-24
+    #         elif match(r'^[1-9]\d{0,3}[\-]\d{1,4}$', i):
+    #             start, end = i.split('-')
+    #             issues_dict = {**issues_dict, **{k: str(k) for k in range(int(start), int(end) + 1)}}
+    #
+    #         # handle single negative values, eg. -1, -1.25 and 0
+    #         elif match(r'^-\d{1,4}(.\d{1,2})?$', i) or i == '0':
+    #
+    #             issues_dict[(lambda a: float(a) if '.' in a else int(a))(i)] = i
+    #         else:
+    #             print("not caught by regex: {}".format(i))
+    #     return issues_dict, on_going
+    #
     def create_odd_issues_lists(self, odd_issues):
         """ Return three sorted list containing odd_issues
                 one list to contain values like '1a, 1b, etc.'

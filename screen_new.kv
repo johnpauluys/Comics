@@ -18,8 +18,8 @@
     end_date_text: _end_date_text
     special_issue_notes: _special_issue_notes
     issue_note_container: _issue_note_container
-    standard_issues_container: _standard_issues_container
-    odd_issues_container: _odd_issues_container
+#    standard_issues_container: _standard_issues_container
+#    odd_issues_container: _odd_issues_container
     edition_name_text: _edition_name_text
     edition_issues_text: _edition_issues_text
     status_bar: _status_bar
@@ -331,7 +331,6 @@
                             on_release: root.add_issue_note(_issue_number_text, _issue_note_text) if _issue_note_text.text else None
             BoxLayout:
                 id: _special_issue_notes
-
                 size_hint: 1, None
                 height: self.minimum_height
             ScrollView:
@@ -388,45 +387,12 @@
                     height: self.texture_size[1]
                     shorten: True
                     shorten_from: 'left'
-            BoxLayout:
-                disabled: True if not _odd_issues_container.children and not _standard_issues_container.children else False
-                FieldBox:
-                    id: _issues_box_title
-                    Label:
-                        text: "select owned issue(s)"
-                        size_hint_y: 1
-                        valign: 'center'
 
-                FieldBox:
-                    id: _issue_buttons_box
-                    size_hint_x: 1
-                    TextInput:
-                        id: _select_range_input
-                        text_validate_unfocus: False
-                        size_hint: 1, 1
-                        on_text_validate: root.select_issue_range(self, (_standard_issues_container, _odd_issues_container))
-                    Button:
-                        text: 'select range'
-                        disabled: False if _select_range_input.text else True
-                        on_release: root.select_issue_range(_select_range_input, (_standard_issues_container, _odd_issues_container))
-                    Button:
-                        disabled: False if _standard_issues_container.children or _odd_issues_container.children else True
-                        text: 'all'
-                        on_release: root.select_all_issues((_standard_issues_container, _odd_issues_container))
-                    Button:
-                        disabled: False if _standard_issues_container.children or _odd_issues_container.children else True
-                        text: 'none'
-                        on_release: root. deselect_all_issues((_standard_issues_container, _odd_issues_container))
-                GridLayout:
-                    id: _odd_issues_container
-                    pos:
-                    cols: 10
-                ScrollView:
-                    height: self.parent.height - (_issue_buttons_box.height + _issues_box_title.height + _odd_issues_container.height)
-                    GridLayout:
-                        id: _standard_issues_container
-                        _root: root
-                        cols: 10
+
+            IssuesBox:
+                status_bar: _status_bar
+                data: root.data
+
         BoxLayout:
             padding: 0, dp(-5)
             size_hint: .5, 1

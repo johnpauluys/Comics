@@ -9,10 +9,17 @@
 #            size: self.size
 
 <BoxLayout>:
+    size_hint: 1, 1
     orientation: 'vertical'
     spacing: dp(5)
 
 <GridLayout>:
+#    canvas:
+#        Color:
+#            rgba: 0, 1, 0 , .2
+#        Rectangle:
+#            pos: self.pos
+#            size: self.size
     size_hint_y: None
     height: self.minimum_height
     padding: dp(5)
@@ -179,6 +186,7 @@
     size: self.texture_size
 
 <IssueToggleButton>:
+
     font_size: sp(15)
     background_color: .2, .2, .2, 1
     color: (.5, .5, .5, 1) if self.state == 'normal' else (.2, .7, .9, 1)
