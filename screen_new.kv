@@ -188,7 +188,7 @@
                             on_text_validate: self.get_focus_next().focus = True if not self.text else False
     #                        on_focus: root.data['grouping'] = self.text
                             # status_bar
-                            on_focus: _status_bar.set_status("Enter grouping info if needed") if self.focus else _status_bar.clear_status()
+                            on_focus: _status_bar.set_status("Enter grouping info if needed. Multiple groups may be entered separated by commas, eg: 'Batman, Robin'. Order matters.") if self.focus else _status_bar.clear_status()
                         Button:
                             text: 'add'
                             disabled: True if not _group_text.text else False
@@ -197,9 +197,9 @@
                             text: 'clear last'
                             disabled: True if len(root.group_chain) == 0 else False
                             on_release: del root.group_chain[-1]; _group_text.text = ''
-                        Button:
-                            text: 'test'
-                            on_release: root.set_group(app, app.db_cursor())
+#                        Button:
+#                            text: 'test'
+#                            on_release: root.set_group(app, app.db_cursor())
                 FieldBox:
                     height: self.minimum_height
                     FieldLabel:
@@ -331,4 +331,5 @@
                 id: _submit_btn
                 disabled: True if _status_bar.screen_disabled else False
                 text: 'Submit'
-                on_release: root.submit(app)
+                on_release: _status_bar.set_status("Submit functionality disabled, while working on new Issue Box", "error")
+#                on_release: root.submit(app)
