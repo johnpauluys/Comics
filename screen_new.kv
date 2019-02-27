@@ -345,49 +345,49 @@
 
 # standard issues box starts here
         BoxLayout:
-            BoxLayout:
-                size_hint_y: None
-                height: self.minimum_height
-                padding: 0, 0, 0, dp(32)
-                FieldBox:
-                    Label:
-                        id: _grouping_label
-                        font_size: sp(15)
-                        text: 'Grouping'
-                        size_hint_y: 1
-                        valign: 'center'
-                    PredictiveTextInput:
-                        id: _group_text
-                        text_validate_unfocus: False
-                        on_text: self.suggest_text(app.db_cursor(), 'GROUPS', 'name') if self.text else None
-                        on_text: self.current_suggested_word = '' if not self.text else self.current_suggested_word
-                        on_text_validate: self.complete_string(ending='') if self.current_suggested_word else None
-                        on_text_validate: root.set_grouping_info(app.db_cursor(), self) if not self.current_suggested_word and self.text else None
-                        on_text_validate: self.get_focus_next().focus = True if not self.text else False
-#                        on_focus: root.data['grouping'] = self.text
-                        # status_bar
-                        on_focus: _status_bar.set_status("Enter grouping info if needed") if self.focus else _status_bar.clear_status()
-                    Button:
-                        text: 'add'
-                        disabled: True if not _group_text.text else False
-                        on_release: root.set_grouping_info(app.db_cursor(), _group_text)
-                    Button:
-                        text: 'clear last'
-                        disabled: True if len(root.group_chain) == 0 else False
-                        on_release: del root.group_chain[-1]; _group_text.text = ''
-                    Button:
-                        text: 'test'
-                        on_release: root.set_group(app, app.db_cursor())
-                BlueLabel:
-                    text: root.grouping_text if root.grouping_text else ' '
-#                    halign: 'center'
-                    width: self.parent.width - _grouping_label.width
-                    size_hint_x: None
-                    pos: _group_text.x, _group_text.y - self.height
-                    text_size: self.width, None
-                    height: self.texture_size[1]
-                    shorten: True
-                    shorten_from: 'left'
+#            BoxLayout:
+#                size_hint_y: None
+#                height: self.minimum_height
+#                padding: 0, 0, 0, dp(32)
+#                FieldBox:
+#                    Label:
+#                        id: _grouping_label
+#                        font_size: sp(15)
+#                        text: 'Grouping'
+#                        size_hint_y: 1
+#                        valign: 'center'
+#                    PredictiveTextInput:
+#                        id: _group_text
+#                        text_validate_unfocus: False
+#                        on_text: self.suggest_text(app.db_cursor(), 'GROUPS', 'name') if self.text else None
+#                        on_text: self.current_suggested_word = '' if not self.text else self.current_suggested_word
+#                        on_text_validate: self.complete_string(ending='') if self.current_suggested_word else None
+#                        on_text_validate: root.set_grouping_info(app.db_cursor(), self) if not self.current_suggested_word and self.text else None
+#                        on_text_validate: self.get_focus_next().focus = True if not self.text else False
+##                        on_focus: root.data['grouping'] = self.text
+#                        # status_bar
+#                        on_focus: _status_bar.set_status("Enter grouping info if needed") if self.focus else _status_bar.clear_status()
+#                    Button:
+#                        text: 'add'
+#                        disabled: True if not _group_text.text else False
+#                        on_release: root.set_grouping_info(app.db_cursor(), _group_text)
+#                    Button:
+#                        text: 'clear last'
+#                        disabled: True if len(root.group_chain) == 0 else False
+#                        on_release: del root.group_chain[-1]; _group_text.text = ''
+#                    Button:
+#                        text: 'test'
+#                        on_release: root.set_group(app, app.db_cursor())
+#                BlueLabel:
+#                    text: root.grouping_text if root.grouping_text else ' '
+##                    halign: 'center'
+#                    width: self.parent.width - _grouping_label.width
+#                    size_hint_x: None
+#                    pos: _group_text.x, _group_text.y - self.height
+#                    text_size: self.width, None
+#                    height: self.texture_size[1]
+#                    shorten: True
+#                    shorten_from: 'left'
             BoxLayout:
                 disabled: True if not _odd_issues_container.children and not _standard_issues_container.children else False
                 FieldBox:
@@ -396,7 +396,6 @@
                         text: "select owned issue(s)"
                         size_hint_y: 1
                         valign: 'center'
-
                 FieldBox:
                     id: _issue_buttons_box
                     size_hint_x: 1
@@ -405,6 +404,8 @@
                         text_validate_unfocus: False
                         size_hint: 1, 1
                         on_text_validate: root.select_issue_range(self, (_standard_issues_container, _odd_issues_container))
+                        # status_bar
+                        on_focus: _status_bar.set_status("Enter range(s) to select. eg. '1-23, 26-10, 34, 68'") if self.focus else _status_bar.clear_status()
                     Button:
                         text: 'select range'
                         disabled: False if _select_range_input.text else True
