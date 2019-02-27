@@ -7,28 +7,17 @@
     titles_container: _titles_container
     status_bar: _status_bar
 
-    ScreenTitle:
-        id: _screen_title
-        pos_hint: {'top': 1}
-        text: "Holger's Comic Collection "
-    BoxLayout:
-        orientation: 'horizontal'
-        y: _screen_content.top
-
-        InvisiButton:
-            id: home_button
-            font_size: sp(23)
-            text: "Home"
-            on_press: app.switch_screen('screen_home')
-        InvisiButton:
-            id: add_new_button
-            font_size: sp(23)
-            text: "Add New Comic"
-            on_press: app.switch_screen('screen_new')
+#    ScreenTitle:
+#        id: _screen_title
+#        pos_hint: {'top': 1}
+#        text: "Holger's Comic Collection "
+    NavBox:
+        id: _nav_box
+        scr: 'home'
     ScreenContainer:
         id: _screen_content
         pos: 0, _status_bar.top
-        height: root.height - (_screen_title.height + 2 * _status_bar.height)
+        height: root.height - (_nav_box.height + 2 * _status_bar.height)
         disabled: True if _status_bar.screen_disabled else False
 
         BoxLayout:

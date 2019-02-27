@@ -1,6 +1,5 @@
 from kivy.lang import Builder
 from kivy.properties import BooleanProperty, DictProperty, ListProperty, NumericProperty, ObjectProperty, StringProperty
-from kivy.uix.label import Label
 
 from json import dumps
 from re import match
@@ -22,12 +21,8 @@ class ScreenNew(ComicsScreen):
     other_publisher_toggle = ObjectProperty()
     other_publisher_text = ObjectProperty()
     title_text = ObjectProperty()
-    standard_issues_text = ObjectProperty()
-    odd_issues_text = ObjectProperty()
     start_date_text = ObjectProperty()
     end_date_text = ObjectProperty()
-    special_issue_notes = ObjectProperty()
-    issue_note_container = ObjectProperty()
     # odd_issues_container = ObjectProperty()
 
     group_chain = ListProperty()
@@ -126,86 +121,6 @@ class ScreenNew(ComicsScreen):
             # add issue to data dict
             self.data['issue_notes'][issue_number] = issue_note.strip()
 
-    # def populate_issue_container(self, container, issues_dict):
-    #     """ Add issue buttons to issues container box """
-    #
-    #     print(issues_dict)
-    #     # fill the first spots with blank, if necessary
-    #     # if issue_list == self.standard_issues and issue_list[0] != 1:
-    #     # if issues_dict == self.standard_issues:
-    #     #
-    #     #     for i in range(issues_dict[0] - 1 % 10):
-    #     #         container.add_widget(Label(size_hint=(1, 1)))
-    #     #
-    #     # for i in issues_dict:
-    #     #     # create button
-    #     #     new_issue_toggle = IssueToggleButton(container, self.data, text=str(i))
-    #     #     # check whether it should be in a down state
-    #     #     if i in self.data['owned_issues']:
-    #     #         new_issue_toggle.state = 'down'
-    #     #     # add button to container
-    #     #     container.add_widget(new_issue_toggle)
-    #     #
-    #     # if self.ongoing_series:
-    #     #     container.add_widget(Label(size_hint=(1, 1), text='. . .'))
-    #     #
-    #     # # fill up empty space to make it took prettier
-    #     # if len(issues_dict) + int(self.ongoing_series) < 10:
-    #     #     for i in range(10 - len(issues_dict) % 10):
-    #     #         container.add_widget(Label(size_hint=(1, 1)))
-    #
-    # def load_standard_issues(self):
-    #     """ Load standard issues based on what user entered """
-    #
-    #     issue_ranges = self.standard_issues_text.text
-    #
-    #     issues_dict, self.ongoing_series = self.get_issues_dict(issue_ranges)
-    #
-    #         #TODO CONTINUE HERE
-    #
-    #     # clear standard issue container
-    #     self.standard_issues_container.clear_widgets()
-    #     # add issue toggle buttons to container
-    #     self.populate_issue_container(self.standard_issues_container, issues_dict)
-    #     # # focus on next widget
-    #     # if self.standard_issues_text.focus:
-    #     #     self.standard_issues_text.get_focus_next().focus = True
-    #     # # check whether odd issues were somehow already entered and populate if necessary
-    #     # if self.odd_issues_text.text:
-    #     #     self.load_odd_issues(self.status_bar)
-    #     # return True
-    #
-    # def get_issues_dict(self, issue_ranges):
-    #
-    #     print(issue_ranges)
-    #
-    #     on_going = False
-    #
-    #     issues_dict = {}
-    #     for i in [r.strip() for r in issue_ranges.split(',')]:
-    #         # check for ongoing series
-    #         if i.endswith('+'):
-    #             on_going = True
-    #             i = i[:-1]
-    #
-    #         # handle standard issues eg. '20'
-    #         if match(r'^[1-9]\d{0,3}$', i):
-    #
-    #             issues_dict = {**issues_dict, **{k: str(k) for k in range(1, int(i) + 1)}}
-    #
-    #         # handle ranges eg. 1-20, 22-24
-    #         elif match(r'^[1-9]\d{0,3}[\-]\d{1,4}$', i):
-    #             start, end = i.split('-')
-    #             issues_dict = {**issues_dict, **{k: str(k) for k in range(int(start), int(end) + 1)}}
-    #
-    #         # handle single negative values, eg. -1, -1.25 and 0
-    #         elif match(r'^-\d{1,4}(.\d{1,2})?$', i) or i == '0':
-    #
-    #             issues_dict[(lambda a: float(a) if '.' in a else int(a))(i)] = i
-    #         else:
-    #             print("not caught by regex: {}".format(i))
-    #     return issues_dict, on_going
-    #
     def create_odd_issues_lists(self, odd_issues):
         """ Return three sorted list containing odd_issues
                 one list to contain values like '1a, 1b, etc.'
@@ -509,7 +424,6 @@ class ScreenNew(ComicsScreen):
         if special_issue_container.children:
             special_issue_container.children[-1].ids._issue_note_text.focus = True
 
-
 # ERROR CHECKING
 
     def validate_user_input(self):
@@ -518,8 +432,9 @@ class ScreenNew(ComicsScreen):
             error_msg = "No publisher selected / entered."
         elif not self.title_text.text:
             error_msg = "No comic title entered"
-        elif not self.standard_issues_text.text:
-            error_msg = "No total issues amount entered"
+        # elif not self.standard_issues_text.text:
+        #     error_msg = "No total issues amount entered"
+        # TODO Check if issues are present
         elif self.edition_name_text.text:
             error_msg = "Other editions field still has some text. Did you forget to click 'Add'"
         elif self.special_issues:

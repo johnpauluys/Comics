@@ -1,7 +1,7 @@
 from kivy.app import App
 from kivy.config import Config
 from kivy.properties import ObjectProperty
-from kivy.uix.screenmanager import ScreenManager
+from kivy.uix.screenmanager import ScreenManager, FadeTransition
 
 from os.path import isfile
 from sqlite3 import connect, Error
@@ -13,8 +13,8 @@ from screen_new import ScreenNew
 
 # configure app
 # Config.set('kivy', 'desktop', 1)
-# Config.set('graphics', 'borderless', 0)
-# Config.set('graphics', 'resizable', 0)
+Config.set('graphics', 'borderless', 0)
+Config.set('graphics', 'resizable', 0)
 # Config.set('graphics', 'window_state', 'maximized')
 Config.set('graphics', 'width', 1366)
 Config.set('graphics', 'height', 768)
@@ -29,7 +29,7 @@ class ComicsApp(App):
     comic_publishers = ('Marvel', 'DC', 'Dark Horse', 'Image')
 
     # add screen manager and load first page
-    pages = ScreenManager()
+    pages = ScreenManager(transition=FadeTransition())
 
     def build(self):
         self.title = 'Holger\'s Comic Collection'

@@ -12,39 +12,27 @@
     other_publisher_toggle: _other_publisher_toggle
     other_publisher_text: _other_publisher_text
     title_text: _title_text
-    standard_issues_text: _standard_issues_text
-    odd_issues_text: _odd_issues_text
     start_date_text: _start_date_text
     end_date_text: _end_date_text
-    special_issue_notes: _special_issue_notes
-    issue_note_container: _issue_note_container
 #    standard_issues_container: _standard_issues_container
 #    odd_issues_container: _odd_issues_container
     edition_name_text: _edition_name_text
     edition_issues_text: _edition_issues_text
     status_bar: _status_bar
 
-    ScreenTitle:
-        id: _screen_title
-        pos_hint: {'top': 1}
-        text: "Holger's Comic Collection "
-    BoxLayout:
-        orientation: 'horizontal'
-        pos: dp(0), _screen_content.top
-        InvisiButton:
-            id: home_button
-            font_size: sp(23)
-            text: "Home"
-            on_press: app.switch_screen('screen_home')
-        InvisiButton:
-            id: add_new_button
-            font_size: sp(23)
-            text: "Add New Comic"
-            on_press: app.switch_screen('screen_new')
+#    ScreenTitle:
+#        id: _screen_title
+#        pos_hint: {'top': 1}
+#        text: "Holger's Comic Collection "
+    NavBox:
+        id: _nav_box
+        scr: 'new'
     ScreenContainer:
         id: _screen_content
         pos: 0, _status_bar.top
-        height: root.height - (_screen_title.height + 2 * _status_bar.height)
+#        height: root.height - (_screen_title.height + 2 * _status_bar.height)
+        height: root.height - (2 * _status_bar.height + _nav_box.height)
+
         disabled: True if _status_bar.screen_disabled else False
 
 # Column 1
@@ -156,68 +144,68 @@
                             size_hint_x: None
                             width: dp(65)
                             on_focus: root.data['volume'] = self.text
-                            on_text_validate: _standard_issues_text.focus = True
+                            on_text_validate: self.get_focus_next().focus = True
                             # status_bar
                             on_focus: _status_bar.set_status("Enter the volume number, if any.") if self.focus else _status_bar.clear_status()
 
                 FieldBox:
                     FieldLabel:
-                        text: "Standard issues"
+                        text: "Run dates"
                     FieldBox:
-                        IssueNumberInput:
-                            # TODO add a loading icon
-                            id: _standard_issues_text
+                        DateInput:
+                            id: _start_date_text
+                            status_bar: _status_bar
                             text_validate_unfocus: False
-                            on_focus: root.load_standard_issues() if (not self.focus and not self.get_focus_previous().focus) and self.text else None
-                            on_text_validate: root.load_standard_issues() if self.text else _standard_issues_container.clear_widgets()
+                            on_focus: self.set_date(root.data, 'start_date') if (not self.focus and not self.get_focus_previous().focus) and self.text else None
+                            on_text_validate: self.set_date(root.data, 'start_date')
                             # status_bar
-                            default_text: "Enter the number of standard issues and press ENTER. For ongoing series, enter something like \"142+\". Weird things like \"25-132\" would also work."
+                            default_text: "Enter the date in one of these formats: \"DD/MM/YYYY\", \"MM/YYYY\" or just \"YYYY\"."
                             on_focus: _status_bar.set_status(self.default_text) if self.focus else _status_bar.clear_status()
                         FieldLabel:
-                            text: "Run dates"
-                        FieldBox:
-                            DateInput:
-                                id: _start_date_text
-                                status_bar: _status_bar
-                                text_validate_unfocus: False
-                                on_focus: self.set_date(root.data, 'start_date') if (not self.focus and not self.get_focus_previous().focus) and self.text else None
-                                on_text_validate: self.set_date(root.data, 'start_date')
-                                # status_bar
-                                default_text: "Enter the date in one of these formats: \"DD/MM/YYYY\", \"MM/YYYY\" or just \"YYYY\"."
-                                on_focus: _status_bar.set_status(self.default_text) if self.focus else _status_bar.clear_status()
-                            FieldLabel:
-                                text: "to"
-                                halign: 'center'
-                            DateInput:
-                                id: _end_date_text
-                                status_bar: _status_bar
-                                text_validate_unfocus: False
-                                disabled: True if root.ongoing_series or not _start_date_text.text else False
-                                on_focus: self.set_date(root.data, 'end_date') if (not self.focus and not self.get_focus_previous().focus) and self.text else None
-                                on_text_validate: self.set_date(root.data, 'end_date')
-                                # status_bar
-                                #default_text: "Enter the date in one of these formats: \"DD/MM/YYYY\", \"MM/YYYY\" or just \"YYYY\"."
-                                on_focus: _status_bar.set_status(_start_date_text.default_text) if self.focus else _status_bar.clear_status()
+                            text: "to"
+                            halign: 'center'
+                        DateInput:
+                            id: _end_date_text
+                            status_bar: _status_bar
+                            text_validate_unfocus: False
+                            disabled: True if root.ongoing_series or not _start_date_text.text else False
+                            on_focus: self.set_date(root.data, 'end_date') if (not self.focus and not self.get_focus_previous().focus) and self.text else None
+                            on_text_validate: self.set_date(root.data, 'end_date')
+                            # status_bar
+                            #default_text: "Enter the date in one of these formats: \"DD/MM/YYYY\", \"MM/YYYY\" or just \"YYYY\"."
+                            on_focus: _status_bar.set_status(_start_date_text.default_text) if self.focus else _status_bar.clear_status()
                 FieldBox:
                     FieldLabel:
-                        text: "Odd issues"
+                        text: 'Grouping'
                     FieldBox:
-                        OddIssueInput:
-                            id: _odd_issues_text
-                            size_hint_x: 1
+                        PredictiveTextInput:
+                            id: _group_text
                             text_validate_unfocus: False
-                            on_focus: root.load_odd_issues(_status_bar) if (not self.focus and not self.get_focus_previous().focus) and self.text else None
-                            on_text_validate: root.load_odd_issues(_status_bar) if self.text else None
-                            # change focus
-                            on_text_validate: _edition_name_text.focus = True
+                            on_text: self.suggest_text(app.db_cursor(), 'GROUPS', 'name') if self.text else None
+                            on_text: self.current_suggested_word = '' if not self.text else self.current_suggested_word
+                            on_text_validate: self.complete_string(ending='') if self.current_suggested_word else None
+                            on_text_validate: root.set_grouping_info(app.db_cursor(), self) if not self.current_suggested_word and self.text else None
+                            on_text_validate: self.get_focus_next().focus = True if not self.text else False
+    #                        on_focus: root.data['grouping'] = self.text
                             # status_bar
-                            default_text: "Enter any uncommon issue numbers, eg. 0, -1, -1.25, -1.5, etc. For variations enter issue number plus _, eg. 1_, 2_a, 2_b."
-                            on_focus: _status_bar.set_status(self.default_text) if self.focus else _status_bar.clear_status()
+                            on_focus: _status_bar.set_status("Enter grouping info if needed") if self.focus else _status_bar.clear_status()
                         Button:
                             text: 'add'
-                            disabled: True if not _odd_issues_text.text or _odd_issues_text.text == '-' else False
-                            on_release: root.load_odd_issues(_status_bar)
-
+                            disabled: True if not _group_text.text else False
+                            on_release: root.set_grouping_info(app.db_cursor(), _group_text)
+                        Button:
+                            text: 'clear last'
+                            disabled: True if len(root.group_chain) == 0 else False
+                            on_release: del root.group_chain[-1]; _group_text.text = ''
+                        Button:
+                            text: 'test'
+                            on_release: root.set_group(app, app.db_cursor())
+                FieldBox:
+                    height: self.minimum_height
+                    FieldLabel:
+                    BlueLabel:
+                        size_hint_x: 1
+                        text: root.grouping_text if root.grouping_text else ' '
                 FieldBox:
                     FieldLabel:
                         text: 'Other edition(s)'
@@ -294,41 +282,6 @@
                         # status_bar
                         default_text: "Enter any kind of note you wish. That's some real freedom, man!"
                         on_focus: _status_bar.set_status(self.default_text) if self.focus else _status_bar.clear_status()
-                FieldBox:
-                    FieldLabel:
-                        text: 'Issue #'
-                    FieldBox:
-                        MyTextInput:
-                            id: _issue_number_text
-                            number_of_spaces_allowed: 0
-                            text_validate_unfocus: False
-                            size_hint_x: None
-                            width: dp(65)
-                            foreground_color: (1, 0, 0, 1) if self.text in root.issue_notes else (.2, .7, .9, 1)
-                            on_text_validate: _issue_note_text.focus = True if self.text and self.text not in root.issue_notes else False
-                            on_text_validate: root.focus_special_issue(_special_issue_notes) if _special_issue_notes.children else None
-
-                            #on_text_validate: _special_issue_notes.ids['2_'].focus = True if _special_issue_notes.children else False
-                            #TODO check whether issue exists in issues
-                            # status_bar
-                            default_text: "Enter an issue number." # The issue number has to exist in given issues for this to work."
-                            on_focus: _status_bar.set_status(self.default_text) if self.focus else _status_bar.clear_status()
-                        FieldLabel:
-                            text: 'Note'
-                            halign: 'center'
-                        TextInput:
-                            id: _issue_note_text
-                            text_validate_unfocus: False
-                            disabled: False if _issue_number_text.text and _issue_number_text.text not in root.data['issue_notes'] else True
-                            on_text_validate: root.add_issue_note(_issue_number_text, self) if self.text else None
-                            #on_text_validate: root.issue_notes[_issue_number_text.] = self.text.strip()
-                            # status_bar
-                            default_text: "Enter note for issue #" + _issue_number_text.text + " and click \"Add\" or press ENTER to add note to list below the current field."
-                            on_focus: _status_bar.set_status(self.default_text) if self.focus else _status_bar.clear_status()
-                        Button:
-                            disabled: True if _issue_note_text.disabled == True or not _issue_note_text.text or _issue_number_text.text in root.data['issue_notes'] else False
-                            text: 'add'
-                            on_release: root.add_issue_note(_issue_number_text, _issue_note_text) if _issue_note_text.text else None
             BoxLayout:
                 id: _special_issue_notes
                 size_hint: 1, None
@@ -344,55 +297,15 @@
 
 # standard issues box starts here
         BoxLayout:
-            BoxLayout:
-                size_hint_y: None
-                height: self.minimum_height
-                padding: 0, 0, 0, dp(32)
-                FieldBox:
-                    Label:
-                        id: _grouping_label
-                        font_size: sp(15)
-                        text: 'Grouping'
-                        size_hint_y: 1
-                        valign: 'center'
-                    PredictiveTextInput:
-                        id: _group_text
-                        text_validate_unfocus: False
-                        on_text: self.suggest_text(app.db_cursor(), 'GROUPS', 'name') if self.text else None
-                        on_text: self.current_suggested_word = '' if not self.text else self.current_suggested_word
-                        on_text_validate: self.complete_string(ending='') if self.current_suggested_word else None
-                        on_text_validate: root.set_grouping_info(app.db_cursor(), self) if not self.current_suggested_word and self.text else None
-                        on_text_validate: self.get_focus_next().focus = True if not self.text else False
-#                        on_focus: root.data['grouping'] = self.text
-                        # status_bar
-                        on_focus: _status_bar.set_status("Enter grouping info if needed") if self.focus else _status_bar.clear_status()
-                    Button:
-                        text: 'add'
-                        disabled: True if not _group_text.text else False
-                        on_release: root.set_grouping_info(app.db_cursor(), _group_text)
-                    Button:
-                        text: 'clear last'
-                        disabled: True if len(root.group_chain) == 0 else False
-                        on_release: del root.group_chain[-1]; _group_text.text = ''
-                    Button:
-                        text: 'test'
-                        on_release: root.set_group(app, app.db_cursor())
-                BlueLabel:
-                    text: root.grouping_text if root.grouping_text else ' '
-#                    halign: 'center'
-                    width: self.parent.width - _grouping_label.width
-                    size_hint_x: None
-                    pos: _group_text.x, _group_text.y - self.height
-                    text_size: self.width, None
-                    height: self.texture_size[1]
-                    shorten: True
-                    shorten_from: 'left'
-
-
             IssuesBox:
+#                canvas:
+#                    Color:
+#                        rgba: 0, 1, 0 , .2
+#                    Rectangle:
+#                        pos: self.pos
+#                        size: self.size
                 status_bar: _status_bar
                 data: root.data
-
         BoxLayout:
             padding: 0, dp(-5)
             size_hint: .5, 1

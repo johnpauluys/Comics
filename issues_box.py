@@ -1,10 +1,11 @@
 from kivy.lang import Builder
 
+from kivy.graphics import Canvas, Color, Rectangle
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.togglebutton import ToggleButton
 from kivy.uix.label import Label
-from kivy.properties import ObjectProperty, OptionProperty, StringProperty
+from kivy.properties import ObjectProperty, OptionProperty, StringProperty, NumericProperty
 
 from re import match
 
@@ -13,21 +14,25 @@ Builder.load_file('issues_box.kv')
 
 class IssuesBox(BoxLayout):
 
+    issues_container = ObjectProperty()
+    current_box = ObjectProperty()
     status_bar = ObjectProperty()
+    issue_counter = NumericProperty(0)
+    info_window_status = OptionProperty('closed', options=['open', 'closed'])
 
-    def load_issues(self, issues_container, issue_ranges, data_issues_dict):
+    def load_issues(self, issue_ranges, data_issues_dict):
         """ Load standard issues based on what user entered """
 
         issues_dict, ongoing_series = self.parse_issue_ranges(issue_ranges)
 
         if issues_dict:
 
-        #TODO CONTINUE HERE
-
             # clear standard issue container
-            issues_container.clear_widgets()
+            self.issues_container.clear_widgets()
+            self.issue_counter = 0
+            self.current_box = IssueContainerBox()
             # add issue toggle buttons to container
-            self.populate_issue_container(issues_container, issues_dict)
+            self.populate_issue_container(issues_dict)
         # # focus on next widget
         # if self.standard_issues_text.focus:
         #     self.standard_issues_text.get_focus_next().focus = True
@@ -85,11 +90,13 @@ class IssuesBox(BoxLayout):
                                        'error')
         return issues_dict, on_going
 
-    def pad_issues(self, std_issues_dict):
+    def pad_issues(self, std_issues_dict, pre_issues_entered=False):
         """ Return a list of issues and empty slots, keeping the standard format of n(1-10) per row """
 
         # set empty list to return
         padded_issues = []
+        # TODO user entries like -1, 20 don't behave as expected
+        # TODO has to do with 20 % 10 returning 0
 
         # handle multiple lists
         if std_issues_dict[-1] != len(std_issues_dict):
@@ -115,6 +122,7 @@ class IssuesBox(BoxLayout):
             padded_issues += ['' for _ in range((10 - split_list[last_group][-1]) % 10)]
         else:
             # handle a single value, like 20
+            print('single value')
             padded_issues = [i for i in std_issues_dict] + [''] * (10 - len(std_issues_dict) % 10)
 
         print('padded_issues:', padded_issues)
@@ -144,63 +152,48 @@ class IssuesBox(BoxLayout):
                 split_list[counter].append(i)
         return split_list, counter
 
-    def populate_issue_container(self, container, issues_dict):
+    def on_issue_counter(self, instance, value):
+
+        if value % 10 == 0:
+            self.issues_container.add_widget(self.current_box)
+            self.current_box = IssueContainerBox()
+
+    def populate_issue_container(self, issues_dict):
         """ Add issue buttons to issues container box """
 
         pre = sorted(i for i in issues_dict if i <= 0)
         std = sorted(i for i in issues_dict if i > 0)
+        print('standard issues: {}'.format(std))
+        self.issue_counter = 0
+        self.issues_container.clear_widgets()
+
         if pre:
             for i in range(10 - len(pre) % 10):
-                container.add_widget(Label(text='', size_hint=(1, None)))
+                self.current_box.add_widget(Label(text='', size_hint=(1, None)))
+                self.issue_counter += 1
             for i in pre:
-                new_btn = IssueToggleButton(container, issues_dict, text=issues_dict[i])
-                container.add_widget(new_btn)
-        #
+                new_btn = IssueToggleButton(self.issues_container, issues_dict, text=issues_dict[i])
+                self.current_box.add_widget(new_btn)
+                self.issue_counter += 1
+
         if std:
-            for i in self.pad_issues(std):
+            for i in self.pad_issues(std, bool(pre)):
                 if i == '':
-                    container.add_widget(Label(text='', size_hint=(1, None)))
+                    self.current_box.add_widget(Label(text='', size_hint=(1, None)))
+                    self.issue_counter += 1
                 else:
-                    new_btn = IssueToggleButton(container, issues_dict, text=issues_dict[i])
-                    container.add_widget(new_btn)
-
-
-
-        # fill the first spots with blank, if necessary
-
-
-        # if issue_list == self.standard_issues and issue_list[0] != 1:
-        # if issues_dict == self.standard_issues:
-        #
-        #     for i in range(issues_dict[0] - 1 % 10):
-        #         container.add_widget(Label(size_hint=(1, 1)))
-        #
-        # for i in issues_dict:
-        #     # create button
-        #     new_issue_toggle = IssueToggleButton(container, self.data, text=str(i))
-        #     # check whether it should be in a down state
-        #     if i in self.data['owned_issues']:
-        #         new_issue_toggle.state = 'down'
-        #     # add button to container
-        #     container.add_widget(new_issue_toggle)
-        #
-        # if self.ongoing_series:
-        #     container.add_widget(Label(size_hint=(1, 1), text='. . .'))
-        #
-        # # fill up empty space to make it took prettier
-        # if len(issues_dict) + int(self.ongoing_series) < 10:
-        #     for i in range(10 - len(issues_dict) % 10):
-        #         container.add_widget(Label(size_hint=(1, 1)))
+                    new_btn = IssueToggleButton(self.issues_container, issues_dict, text=issues_dict[i])
+                    self.current_box.add_widget(new_btn)
+                    self.issue_counter += 1
 
 
 class IssueToggleButton(ToggleButton):
 
     owned = OptionProperty(0, options=[0, 1])
 
-
-    def __init__(self, container, data_issues, **kwargs):
+    def __init__(self, issues_container, data_issues, **kwargs):
         super(IssueToggleButton, self).__init__(**kwargs)
-        self.container = container
+        self.issues_container = issues_container
         self.data = data_issues
 
     def on_state(self, instance, value):
@@ -211,27 +204,24 @@ class IssueToggleButton(ToggleButton):
     def on_touch_down(self, touch):
 
         if self.collide_point(*touch.pos):
-            print(self.text)
+            if self.issues_container._root.info_window_status == 'open':
+                return False
             if touch.is_double_tap:
-                print('double_tap')
-                # self.reverse_state()
-                indx = self.parent.children.index(self) + (0 - (self.parent.children.index(self) % 10))
-
-                print(self.parent.children[indx].pos)
-                issue_info = IssueInfo(self.parent.children[indx].pos)
-                self.parent.add_widget(issue_info)
-
+                self.state = 'down'
+                info_index = self.issues_container.children.index(self.parent)
+                self.issues_container._root.info_window_status = 'open'
+                info_box = IssueInfo(self.issues_container, self)
+                self.issues_container.add_widget(info_box, index=info_index)
             else:
                 self.reverse_state()
-                print('no_double_tap')
         else:
             return super().on_touch_down(touch)
 
-    def on_touch_up(self, touch):
-
-        if touch.grab_current is self:
-            print('grabbed', touch)
-            touch.ungrab(self)
+    # def on_touch_up(self, touch):
+    #
+    #     if touch.grab_current is self:
+    #         print('grabbed', touch)
+    #         touch.ungrab(self)
 
     def reverse_state(self):
         self.state = 'down' if self.state == 'normal' else 'normal'
@@ -265,9 +255,20 @@ class IssueToggleButton(ToggleButton):
     #     if value == 'normal' and self.convert_issue_number(self.text) in self.user_data['owned_issues']:
     #         self.user_data['owned_issues'].remove(self.convert_issue_number(self.text))
 
-class IssueInfo(BoxLayout):
 
-    def __init__(self, position, **kwargs):
+class IssueContainerBox(BoxLayout):
+    pass
+
+
+class IssueInfo(BoxLayout):
+    issue_number = StringProperty()
+
+    def __init__(self, issues_container, issue_widget, **kwargs):
         super(IssueInfo, self).__init__(**kwargs)
-        self.pos = position
-        print(self.pos)
+        self.issues_container = issues_container
+        self.issue_number = issue_widget.text
+
+    def close_window(self, issue_box):
+        self.issues_container._root.info_window_status = 'closed'
+        issue_box.remove_widget(self)
+

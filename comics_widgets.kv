@@ -14,12 +14,6 @@
     spacing: dp(5)
 
 <GridLayout>:
-#    canvas:
-#        Color:
-#            rgba: 0, 1, 0 , .2
-#        Rectangle:
-#            pos: self.pos
-#            size: self.size
     size_hint_y: None
     height: self.minimum_height
     padding: dp(5)
@@ -31,11 +25,13 @@
 
 <Label>:
     color: .8,.8,.8,1
-    font_size: sp(18)
+    font_size: sp(15)
     font_name: 'fonts/LinLibertine_R.ttf'
-    size_hint: None, None
-    size: self.texture_size
+    size_hint: None, 1
+    width: self.texture_size[0]
+    height: self.texture_size[1]
     padding: dp(5), 0
+    valign: 'center'
 
 <Button>:
     font_name: 'fonts/ComicBook.otf'
@@ -68,6 +64,49 @@
     # prevent user from typing non numeric characters
     on_text: self.text = self.text[:-1] if not self.text.isnumeric() and self.input_type == 'number' else self.text
 
+<BlueLabel@Label>:
+    canvas:
+        Color:
+            rgba: 0.2, 0, 0.2 , .1
+        Rectangle:
+            pos: self.pos
+            size: self.size
+    font_size: sp(17)
+    size_hint: None, None
+    color: (.3, .3, .3, 1) if not self.text else (.2, .7, .9, 1)
+    font_name: 'fonts/ComicBook.otf'
+
+<InvisiButton@Button>:
+    font_name: 'fonts/LinLibertine_R.ttf'
+    font_size: sp(18)
+    background_down: ''
+    background_normal: ''
+    background_color: 0,0,0,0
+    color: .6,.6,.6,1 if self.disabled == False else .2,.2,.2,1
+    padding: dp(5), 0
+    size_hint: None, None
+    size: self.texture_size
+
+<NavBox@BoxLayout>:
+    scr: 'none'
+    size_hint_y: None
+    height: self.minimum_height
+    padding: dp(25), dp(5)
+    orientation: 'horizontal'
+    pos: dp(0), self.parent.top - self.height
+    InvisiButton:
+        id: home_button
+        font_size: sp(23)
+        color: (.2, .7, .9, 1) if root.scr == 'home' else (.6,.6,.6,1)
+        text: "Home"
+        on_press: app.switch_screen('screen_home')
+    InvisiButton:
+        id: add_new_button
+        font_size: sp(23)
+        color: (.2, .7, .9, 1) if root.scr == 'new' else (.6,.6,.6,1)
+        text: "Add New Comic"
+        on_press: app.switch_screen('screen_new')
+
 <PublisherToggle@ToggleButton>
 #    id: _dc_toggle
     publisher: 'publisher_name'
@@ -80,7 +119,6 @@
     on_state: self.parent._root.publisher_count += 1 if self.state == 'down' else -1
 #    on_release: self.get_focus_next().focus = True if self.parent._root.publisher_count else False
 #    on_release: _other_publisher_text.focus = True if not root.publisher_count and _other_publisher_toggle.state == 'down' and _other_publisher_text else False
-
 
 <PredictiveTextInput>:
     text_validate_unfocus: False
@@ -113,11 +151,6 @@
     size_hint: .3, 1
     shorten: True
     shorten_from: 'right'
-
-<BlueLabel@Label>:
-    font_size: sp(17)
-    color: (.3, .3, .3, 1) if not self.text else (.2, .7, .9, 1)
-    font_name: 'fonts/ComicBook.otf'
 
 <IssueNumberInput>
     size_hint_x: None
@@ -173,17 +206,6 @@
             halign: 'right'
             text: 'x'
             on_release: root.confirm_delete()
-
-<InvisiButton@Button>:
-    font_name: 'fonts/LinLibertine_R.ttf'
-    font_size: sp(18)
-    background_down: ''
-    background_normal: ''
-    background_color: 0,0,0,0
-    color: .6,.6,.6,1 if self.disabled == False else .2,.2,.2,1
-    padding: dp(5), 0
-    size_hint: None, None
-    size: self.texture_size
 
 <IssueToggleButton>:
 
@@ -341,4 +363,3 @@
                     height: self.texture_size[1]
                     text: root.issue_notes
     InfoBox:
-
