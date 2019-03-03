@@ -40,9 +40,10 @@ class ScreenNew(ComicsScreen):
     issue_notes = DictProperty()
     special_issues = ListProperty()
 
+    issues = DictProperty()
     ongoing_series = BooleanProperty(False)
 
-    data = {'odd_issues': list(), 'owned_issues': list(), 'issue_notes': dict()}
+    data = {'issues': dict(), 'owned_issues': list(), 'issue_notes': dict()}
     other_editions_data = dict()
 
     # error handling

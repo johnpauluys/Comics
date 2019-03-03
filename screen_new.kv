@@ -114,7 +114,7 @@
                         text: "Title"
                     TextInput:
                         id: _title_text
-                        text_validate_unfocus: False
+#                        text_validate_unfocus: False
                         on_text_validate: self.get_focus_next().focus = True if self.text else False
                         on_focus: root.data['title'] = self.text
                         # status_bar
@@ -149,7 +149,7 @@
                         DateInput:
                             id: _start_date_text
                             status_bar: _status_bar
-                            text_validate_unfocus: False
+#                            text_validate_unfocus: False
                             on_focus: self.set_date(root.data, 'start_date') if (not self.focus and not self.get_focus_previous().focus) and self.text else None
                             on_text_validate: self.set_date(root.data, 'start_date')
                             # status_bar
@@ -161,7 +161,7 @@
                         DateInput:
                             id: _end_date_text
                             status_bar: _status_bar
-                            text_validate_unfocus: False
+#                            text_validate_unfocus: False
                             disabled: True if root.ongoing_series or not _start_date_text.text else False
                             on_focus: self.set_date(root.data, 'end_date') if (not self.focus and not self.get_focus_previous().focus) and self.text else None
                             on_text_validate: self.set_date(root.data, 'end_date')
@@ -174,7 +174,7 @@
                     FieldBox:
                         PredictiveTextInput:
                             id: _group_text
-                            text_validate_unfocus: False
+#                            text_validate_unfocus: False
                             on_text: self.suggest_text(app.db_cursor(), 'GROUPS', 'name') if self.text else None
                             on_text: self.current_suggested_word = '' if not self.text else self.current_suggested_word
                             on_text_validate: self.complete_string(ending='') if self.current_suggested_word else None
@@ -227,7 +227,7 @@
                                     text: 'Issues'
                                 TextInput:
                                     id: _edition_issues_text
-                                    text_validate_unfocus: False
+#                                    text_validate_unfocus: False
                                     size_hint_x: None
                                     width: dp(65)
                                     disabled: True if _edition_name_text.text in root.other_editions_data else False
@@ -299,7 +299,7 @@
 #                        pos: self.pos
 #                        size: self.size
                 status_bar: _status_bar
-                data: root.data
+                screen: root
         BoxLayout:
             padding: 0, dp(-5)
             size_hint: .5, 1

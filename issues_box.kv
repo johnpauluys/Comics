@@ -2,53 +2,31 @@
 
 <IssuesBox>:
     issues_container: _issues_container
-#    canvas:
-#        Color:
-#            rgba: 0.2, 0, 0.2 , .8
-#        Rectangle:
-#            pos: self.pos
-#            size: self.size
     FieldBox:
         disabled: True if root.info_window_status == 'open' else False
         Label:
-            font_size: sp(15)
             text: 'Enter issues'
-            size_hint: None, 1
-            valign: 'center'
         TextInput:
             id: _issues_text
-            text_validate_unfocus: False
-            on_text_validate: root.load_issues(_issues_text.text, root.data) if self.text else None
+            text_validate_unfocus: True
+            on_text_validate: root.load_issues(_issues_text.text) if self.text else None
             # status_bar
             default_text: "Enter the number of standard issues and press ENTER. For ongoing series, enter something like \"142+\". Weird things like \"25-132\" would also work."
             on_focus: root.status_bar.set_status(self.default_text) if self.focus else root.status_bar.clear_status()
         Button:
             text: 'add'
-            on_release: root.load_issues(_issues_text.text, root.data) if self.text else None
+            disabled: False if _issues_text.text else True
+            on_release: root.load_issues(_issues_text.text) if self.text else None
     ScrollView:
-#        canvas:
-#            Color:
-#                rgba: 1, 1, 1 , .1
-#            Rectangle:
-#                pos: self.pos
-#                size: self.size
-        height: root.height - _issues_text.height - dp(5)
+        height: root.height - (_issues_text.height + dp(5))
         BoxLayout:
             id: _issues_container
             _root: root
             size_hint: 1, None
             height: self.minimum_height
-            orientation: 'vertical'
             padding: dp(5)
 
 <IssueSelector@FieldBox>
-    canvas:
-        Color:
-            rgba: 0, 1, 0 , .2
-        Rectangle:
-            pos: self.pos
-            size: self.size
-
     size_hint_x: 1
     TextInput:
         id: _select_range_input
@@ -66,20 +44,15 @@
         on_release: root. deselect_all_issues(_standard_issues_container)
 
 <IssueRowBox>
-#    canvas:
-#        Color:
-#            rgba: 0.2, 0, 0.2 , .8
-#        Rectangle:
-#            pos: self.pos
-#            size: self.size
     orientation: 'horizontal'
     size_hint: 1, None
     height: dp(20)
     padding: dp(5), dp(0)
 
-<IssueInfo>:
+<IssueInfoBox>:
     add_copy_button: _add_copy_button
     add_variant_button: _add_variant_button
+    notes: _notes_text
     canvas:
         Color:
             rgba: .2, .7, .9, .5
@@ -92,19 +65,17 @@
             pos: self.pos
             size: self.size
     padding: dp(10)
-    size_hint_y: None
-    size_hint_x: 1
+    size_hint: 1, None
     height: self.minimum_height
     padding: dp(10), dp(10), dp(15), dp(15)
     FieldBox:
-        padding: 0, 0
         height: self.minimum_height
         BlueLabel:
             id: _issue_name_label
-            padding: 5, 0
-            text: 'Issue #' + root.issue_number
+            padding: dp(5), dp(0)
+            text: 'Issue # ' + root.issue_number
         Label:
-            size_hint_x: 1
+            size_hint_x: .3
         AddExtraButton:
             id: _add_copy_button
             issue_info_container: root
@@ -123,29 +94,33 @@
             valign: 'top'
             text_size: self.size
         TextInput:
+            id: _notes_text
             multiline: True
     FieldBox:
+        padding: dp(10), dp(0)
         height: dp(64)
         valign: 'bottom'
         FieldLabel:
         Button:
             size_hint_y: .5
             text: 'cancel'
+            on_release: root.close_window(root.parent)
         Button:
             size_hint_y: .5
-            text: 'OK'
-            on_release: root.close_window(root.parent)
+            text: 'save'
+            on_release: root.save_changes()
 
 <AddExtraButton>:
     extra_type: 'copy'
     font_name: 'fonts/ComicBook.otf'
     font_size: sp(15.5)
-    valign: 'center'
-    text: 'set label with issueinfobox'
+    size_hint_x: .35
+#    text: 'set label with issueinfobox'
     on_release: self.issue_info_container.add_extra_box(self.text[4:]) if self.state == 'down' else self.issue_info_container.remove_extra_box(self.extra_type)
 
 <ExtraIssueBox>:
-    extra_number_label: _extra_number_label
+    number_label: _extra_number_label
+    note: _extra_note_text
     size_hint: 1, None
     height: self.minimum_height
     padding: dp(10), 0
@@ -160,7 +135,6 @@
             TextInput:
                 id: _extra_note_text
                 focus: True
-                text_validate_unfocus: False
                 on_text_validate: self.get_focus_next().focus = True if self.text else False
             TextButton:
                 text: 'X'
