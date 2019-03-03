@@ -35,15 +35,12 @@
 
 <Button>:
     font_name: 'fonts/ComicBook.otf'
-    color: 0,0,0,1 #.8, .8, .85, 1
+    color: 0,0,0,1
     min_state_time: 0.15
     size_hint: None, 1
     size: self.texture_size
     font_size: sp(16)
     padding: dp(10), 0
-
-<ToggleButton>:
-    color: 0, 0, 0, 1 #.8, .8, .85, 1
 
 <TextInput>:
     #padding_x: sp(10)
@@ -51,6 +48,7 @@
     background_color: .05, .05, .05, 1
     cursor_color: .2, .7, .9, .6
     foreground_color: .2, .7, .9, 1
+    disabled_foreground_color: .2, .7, .9, .5
     hint_text_color: .15,.15,.15,1
     selection_color: .2, .7, .9, 0.1
     font_name: 'fonts/ComicBook.otf'
@@ -65,18 +63,12 @@
     on_text: self.text = self.text[:-1] if not self.text.isnumeric() and self.input_type == 'number' else self.text
 
 <BlueLabel@Label>:
-    canvas:
-        Color:
-            rgba: 0.2, 0, 0.2 , .1
-        Rectangle:
-            pos: self.pos
-            size: self.size
     font_size: sp(17)
     size_hint: None, None
     color: (.3, .3, .3, 1) if not self.text else (.2, .7, .9, 1)
     font_name: 'fonts/ComicBook.otf'
 
-<InvisiButton@Button>:
+<TextButton@Button>:
     font_name: 'fonts/LinLibertine_R.ttf'
     font_size: sp(18)
     background_down: ''
@@ -87,22 +79,30 @@
     size_hint: None, None
     size: self.texture_size
 
+<TextToggleButton@ToggleButton>
+    size_hint: None, None
+    size: self.texture_size
+    color: .3, .3, .3, 1
+    background_color: 0,0,0,0
+    on_state: self.color =  (.2, .7, .9, 1) if self.state == 'down' else (.3, .3, .3, 1)
+
+
 <NavBox@BoxLayout>:
     scr: 'none'
     size_hint_y: None
     height: self.minimum_height
-    padding: dp(25), dp(5)
+    padding: dp(10), dp(5)
     orientation: 'horizontal'
     pos: dp(0), self.parent.top - self.height
-    InvisiButton:
+    TextButton:
         id: home_button
-        font_size: sp(23)
+        font_size: sp(20)
         color: (.2, .7, .9, 1) if root.scr == 'home' else (.6,.6,.6,1)
         text: "Home"
         on_press: app.switch_screen('screen_home')
-    InvisiButton:
+    TextButton:
         id: add_new_button
-        font_size: sp(23)
+        font_size: sp(20)
         color: (.2, .7, .9, 1) if root.scr == 'new' else (.6,.6,.6,1)
         text: "Add New Comic"
         on_press: app.switch_screen('screen_new')
@@ -177,45 +177,14 @@
             on_release: root.screen.special_issues.remove(root.issue_code) if _issue_note_text.text.strip() else None
             on_release: root.screen.focus_special_issue(root.container) if self.text else None
 
-<IssueNoteBox>:
-    issue_number_label: _issue_number
-    issue_note_label: _issue_note
-    del_btn: _del_btn
-    height: _issue_note.height
-    FieldLabel:
-        id: _issue_number
-        valign: 'center'
-    FieldBox:
-        Label:
-            canvas:
-                Color:
-                    rgba: (1, 1, 1, .03) if root.back_lit else (1, 1, 1, 0)
-                Rectangle:
-                    pos: self.pos
-                    size: self.size
-            id: _issue_note
-            size_hint: 1, None
-            height: self.texture_size[1]
-            text_size: self.width, None
-            halign: 'left'
-            valign: 'center'
-            font_size: sp(18)
-        InvisiButton:
-            id: _del_btn
-            valign: 'center'
-            halign: 'right'
-            text: 'x'
-            on_release: root.confirm_delete()
-
 <IssueToggleButton>:
-
     font_size: sp(15)
-    background_color: .2, .2, .2, 1
     color: (.5, .5, .5, 1) if self.state == 'normal' else (.2, .7, .9, 1)
-    disabled_color: .2, .2, .2, .5
+    background_color: (.2, .2, .2, 1) if not self.disabled else (.1, .1, .1, 1)
+#    background_disabled_normal: ''
+#    background_disabled_down: ''
     size_hint: 1, None
-    #valign:'center'
-    allow_no_selection: False
+
 
 <OtherEditionBox>:
     issues_container: _issues_container
@@ -226,7 +195,7 @@
             id: _editions_label
             size_hint_x: 1
             text_size: self.size
-        InvisiButton:
+        TextButton:
             id: _del_btn
             #text_size: self.size
             size: self.texture_size
@@ -248,7 +217,7 @@
             id: _annuals_label
             size_hint_x: 1
             text_size: self.width, self.height
-        InvisiButton:
+        TextButton:
             id: _del_btn
             size: self.texture_size
             valign: 'center'
@@ -292,14 +261,14 @@
         size_hint: 1, None
         height: self.minimum_height
         orientation: 'horizontal'
-        InvisiButton:
+        TextButton:
             id: _title
             size: dp(350), self.height
             text_size: self.size
             halign: 'left'
             text: root.title
             on_press: root.open_info()
-        InvisiButton:
+        TextButton:
             text: root.progress
             on_press: root.open_issues() if not self.text == 'complete' else None
     BoxLayout:

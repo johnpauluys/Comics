@@ -86,14 +86,8 @@
                             on_release: _other_publisher_text.focus = True if not root.publisher_count and _other_publisher_toggle.state == 'down' and _other_publisher_text else False
                         Label:
                             width: (_publisher_images.width - (_dc_toggle.width + _marvel_toggle.width + _dark_horse_toggle.width + _image_toggle.width + _other_publisher_toggle.width)) / 4
-                        ToggleButton:
+                        TextToggleButton:
                             id: _other_publisher_toggle
-                            size_hint: None, None
-                            size: self.texture_size
-                            valign: 'bottom'
-                            color: .3, .3, .3, 1
-                            background_color: 0,0,0,.2
-                            on_state: self.color =  (.2, .7, .9, 1) if self.state == 'down' else (.3, .3, .3, 1)
                             text: 'Other'
                             on_release: _other_publisher_text.focus = True if self.state == 'down' else False
                             on_release: _title_text.focus = True if self.state == 'normal' and root.publisher_count else False
@@ -327,7 +321,7 @@
         FieldBox:
             StatusBar:
                 id: _status_bar
-            Button:
+            TextButton:
                 id: _submit_btn
                 disabled: True if _status_bar.screen_disabled else False
                 text: 'Submit'

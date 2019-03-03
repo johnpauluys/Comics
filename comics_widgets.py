@@ -44,6 +44,11 @@ class FieldBox(BoxLayout):
 class FieldLabel(Label):
     pass
 
+class TextButton(Button):
+    pass
+
+class TextToggleButton(ToggleButton):
+    pass
 
 class MyTextInput(TextInput):
     """ Custom TextInput class """

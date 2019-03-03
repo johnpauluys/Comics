@@ -1,12 +1,6 @@
 from kivy.lang import Builder
-
-from kivy.graphics import Canvas, Color, Rectangle
-from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.floatlayout import FloatLayout
-from kivy.uix.togglebutton import ToggleButton
-from kivy.uix.label import Label
-from kivy.properties import ObjectProperty, OptionProperty, StringProperty, NumericProperty
-
+from kivy.properties import DictProperty, NumericProperty, ObjectProperty, OptionProperty, StringProperty
+from comics_widgets import BoxLayout, FieldBox, Label, TextButton, ToggleButton
 from re import match
 
 Builder.load_file('issues_box.kv')
@@ -20,6 +14,17 @@ class IssuesBox(BoxLayout):
     issue_counter = NumericProperty(0)
     info_window_status = OptionProperty('closed', options=['open', 'closed'])
 
+    def on_issue_counter(self, instance, value):
+
+        if value % 10 == 0:
+            self.issues_container.add_widget(self.current_box)
+            self.current_box = IssueRowBox()
+
+    def on_info_window_status(self, instance, value):
+        print("issue info window {}".format(value))
+        for child in self.issues_container.children:
+            child.disabled = True if child.height != 0 and value == 'open' else False
+
     def load_issues(self, issue_ranges, data_issues_dict):
         """ Load standard issues based on what user entered """
 
@@ -30,9 +35,11 @@ class IssuesBox(BoxLayout):
             # clear standard issue container
             self.issues_container.clear_widgets()
             self.issue_counter = 0
-            self.current_box = IssueContainerBox()
+            self.current_box = IssueRowBox()
             # add issue toggle buttons to container
             self.populate_issue_container(issues_dict)
+            # self.current_box = IssueContainerBox()
+            # self.add_widget(self.current_box)
         # # focus on next widget
         # if self.standard_issues_text.focus:
         #     self.standard_issues_text.get_focus_next().focus = True
@@ -78,7 +85,7 @@ class IssuesBox(BoxLayout):
                 # handle single negative values, eg. -1, -1.25 and 0
                 elif match(r'^-\d{1,3}(.\d{1,2})?$', i):
 
-                    issues_dict[float(i)] = i
+                    issues_dict[float(i) if '.' in i else int(i)] = i
                 else:
                     errors.append(i)
                     self.status_bar.set_status('The following range(s) caused problems: "{}".'.format(', '.join(errors)),
@@ -152,11 +159,6 @@ class IssuesBox(BoxLayout):
                 split_list[counter].append(i)
         return split_list, counter
 
-    def on_issue_counter(self, instance, value):
-
-        if value % 10 == 0:
-            self.issues_container.add_widget(self.current_box)
-            self.current_box = IssueContainerBox()
 
     def populate_issue_container(self, issues_dict):
         """ Add issue buttons to issues container box """
@@ -172,7 +174,7 @@ class IssuesBox(BoxLayout):
                 self.current_box.add_widget(Label(text='', size_hint=(1, None)))
                 self.issue_counter += 1
             for i in pre:
-                new_btn = IssueToggleButton(self.issues_container, issues_dict, text=issues_dict[i])
+                new_btn = IssueToggleButton(self, self.issues_container, issues_dict, text=issues_dict[i])
                 self.current_box.add_widget(new_btn)
                 self.issue_counter += 1
 
@@ -182,7 +184,7 @@ class IssuesBox(BoxLayout):
                     self.current_box.add_widget(Label(text='', size_hint=(1, None)))
                     self.issue_counter += 1
                 else:
-                    new_btn = IssueToggleButton(self.issues_container, issues_dict, text=issues_dict[i])
+                    new_btn = IssueToggleButton(self, self.issues_container, issues_dict, text=issues_dict[i])
                     self.current_box.add_widget(new_btn)
                     self.issue_counter += 1
 
@@ -190,9 +192,11 @@ class IssuesBox(BoxLayout):
 class IssueToggleButton(ToggleButton):
 
     owned = OptionProperty(0, options=[0, 1])
+    issues_box = ObjectProperty()
 
-    def __init__(self, issues_container, data_issues, **kwargs):
+    def __init__(self, issues_box, issues_container, data_issues, **kwargs):
         super(IssueToggleButton, self).__init__(**kwargs)
+        self.issues_box = issues_box
         self.issues_container = issues_container
         self.data = data_issues
 
@@ -201,17 +205,24 @@ class IssueToggleButton(ToggleButton):
         if self.owned:
             print('You own Issue #{}'. format(self.text))
 
+        print(self.data)
+
+
+    # def on_owned(self, instance, value):
+    #     if value:
+    #         print(self.data[self.text])
+
     def on_touch_down(self, touch):
 
         if self.collide_point(*touch.pos):
-            if self.issues_container._root.info_window_status == 'open':
+            if self.issues_box.info_window_status == 'open':
                 return False
             if touch.is_double_tap:
                 self.state = 'down'
                 info_index = self.issues_container.children.index(self.parent)
-                self.issues_container._root.info_window_status = 'open'
-                info_box = IssueInfo(self.issues_container, self)
+                info_box = IssueInfo(self.issues_box, self.issues_container, self)
                 self.issues_container.add_widget(info_box, index=info_index)
+                self.issues_box.info_window_status = 'open'
             else:
                 self.reverse_state()
         else:
@@ -256,19 +267,109 @@ class IssueToggleButton(ToggleButton):
     #         self.user_data['owned_issues'].remove(self.convert_issue_number(self.text))
 
 
-class IssueContainerBox(BoxLayout):
+class IssueRowBox(BoxLayout):
+    pass
+
+
+class IssueSelector(FieldBox):
     pass
 
 
 class IssueInfo(BoxLayout):
+
+    issues_box = ObjectProperty()
+    issues_container = ObjectProperty()
     issue_number = StringProperty()
 
-    def __init__(self, issues_container, issue_widget, **kwargs):
+    add_copy_button = ObjectProperty()
+    add_variant_button = ObjectProperty()
+    extra_issues = DictProperty({'copy': 1, 'variant': 0})
+
+    def __init__(self, issues_box, issues_container, issue_widget, **kwargs):
         super(IssueInfo, self).__init__(**kwargs)
+        self.issues_box = issues_box
         self.issues_container = issues_container
         self.issue_number = issue_widget.text
+        self.add_copy_button.text = 'add 2nd Copy'
+        self.add_variant_button.text = 'add Variant'
+
+    def on_extra_issues(self, instance, value):
+        self.add_copy_button.text = 'add {}'.format(self.nth_string('copy'))
+        self.add_variant_button.text = 'add {}'.format(self.nth_string('variant'))
 
     def close_window(self, issue_box):
-        self.issues_container._root.info_window_status = 'closed'
+        self.issues_box.info_window_status = 'closed' if self.issues_container else None
         issue_box.remove_widget(self)
+
+    def add_extra_box(self, box_label):
+        """ Add new copy or variant box to layout """
+        if 'variant' in box_label.lower():
+            self.extra_issues['variant'] += 1
+            extra_type = 'variant'
+        elif 'copy' in box_label.lower():
+            self.extra_issues['copy'] += 1
+            extra_type = 'copy'
+        else:
+            print("ERROR: Something went wrong!")
+            return False
+
+        new_box = ExtraIssueBox(self, extra_type, box_label)
+        self.add_widget(new_box, 1)
+
+    def nth_string(self, extra_type, extra_count=None):
+        """ Return a string depending on amount of extra copies. eg. '2nd copy', '3rd copy', etc"""
+        print('extra_count: {}'.format(extra_count))
+        extra_count = self.extra_issues[extra_type] if extra_count is None else extra_count
+        if extra_count == 0:
+            return '{}'.format(extra_type.title())
+        elif extra_count == 1:
+            n_string = '2nd'
+        elif extra_count == 2:
+            n_string = '3rd'
+        else:
+            n_string = "{}th".format(extra_count + 1)
+        print('n_string: {}'.format(n_string))
+        return "{} {}".format(n_string, extra_type.title())
+
+
+class ExtraIssueBox(BoxLayout):
+
+    issue_info_box = ObjectProperty()
+    box_label = StringProperty()
+    extra_number_label = ObjectProperty()
+
+    def __init__(self, issue_info_box, extra_type, box_label, **kwargs):
+        super(ExtraIssueBox, self).__init__(**kwargs)
+        self.issue_info_box = issue_info_box
+        self.extra_type = extra_type
+        self.box_label = box_label
+
+    # def on_box_label(self, instance, value):
+    #     self.extra_number_label.text = self.box_label
+
+
+    def remove_me(self):
+        self.issue_info_box.remove_widget(self)
+        self.issue_info_box.extra_issues[self.extra_type] -= 1
+        self.fix_numbering()
+
+    def fix_numbering(self):
+        current_count = self.issue_info_box.extra_issues[self.extra_type]
+        for c in self.issue_info_box.children:
+
+            if isinstance(c, type(self)) and c.extra_type == self.extra_type:
+                current_count -= 1
+
+                print(current_count, c, type(c), c.extra_type)
+                c.box_label = self.issue_info_box.nth_string(self.extra_type, current_count)
+
+
+class AddExtraButton(TextButton):
+    extra_type = StringProperty()
+    issue_info_container = ObjectProperty()
+
+    # def __init__(self, issue_info_container, **kwargs):
+    #     super(ExtraToggleButton, self).__init__(**kwargs)
+    #     self.issue_info_container = issue_info_container
+
 

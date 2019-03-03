@@ -9,6 +9,7 @@
 #            pos: self.pos
 #            size: self.size
     FieldBox:
+        disabled: True if root.info_window_status == 'open' else False
         Label:
             font_size: sp(15)
             text: 'Enter issues'
@@ -40,41 +41,45 @@
             orientation: 'vertical'
             padding: dp(5)
 
-#    FieldBox:
-#        id: _issue_selection_box
-#        size_hint_x: 1
-#        TextInput:
-#            id: _select_range_input
-#            text_validate_unfocus: False
-#            size_hint: 1, 1
-#            on_text_validate: root.select_issue_range(self, _standard_issues_container)
-#        Button:
-#            text: 'select range'
-#            on_release: root.select_issue_range(_select_range_input, _standard_issues_container)
-#        Button:
-#            text: 'all'
-#            on_release: root.select_all_issues(_standard_issues_container)
-#        Button:
-#            text: 'none'
-#            on_release: root. deselect_all_issues(_standard_issues_container)
+<IssueSelector@FieldBox>
+    canvas:
+        Color:
+            rgba: 0, 1, 0 , .2
+        Rectangle:
+            pos: self.pos
+            size: self.size
 
-<IssueContainerBox>
+    size_hint_x: 1
+    TextInput:
+        id: _select_range_input
+        text_validate_unfocus: False
+        size_hint: 1, 1
+        on_text_validate: root.select_issue_range(self, _standard_issues_container)
+    Button:
+        text: 'select range'
+        on_release: root.select_issue_range(_select_range_input, _standard_issues_container)
+    Button:
+        text: 'all'
+        on_release: root.select_all_issues(_standard_issues_container)
+    Button:
+        text: 'none'
+        on_release: root. deselect_all_issues(_standard_issues_container)
+
+<IssueRowBox>
+#    canvas:
+#        Color:
+#            rgba: 0.2, 0, 0.2 , .8
+#        Rectangle:
+#            pos: self.pos
+#            size: self.size
     orientation: 'horizontal'
     size_hint: 1, None
     height: dp(20)
-
-
-<IssueToggleButton>:
-    font_size: sp(15)
-    background_color: .2, .2, .2, 1
-    color: (.5, .5, .5, 1) if self.state == 'normal' else (.2, .7, .9, 1)
-    disabled_color: .2, .2, .2, .5
-    size_hint: 1, None
-    height: dp(35)
-    #valign:'center'
-    allow_no_selection: False
+    padding: dp(5), dp(0)
 
 <IssueInfo>:
+    add_copy_button: _add_copy_button
+    add_variant_button: _add_variant_button
     canvas:
         Color:
             rgba: .2, .7, .9, .5
@@ -82,7 +87,7 @@
             width: dp(1)
             rectangle: self.x + 5, self.y + 5, self.width - 10, self.height - 10
         Color:
-            rgba: .2, .7, .9, .02
+            rgba: .2, .7, .9, .025
         Rectangle:
             pos: self.pos
             size: self.size
@@ -91,42 +96,76 @@
     size_hint_x: 1
     height: self.minimum_height
     padding: dp(10), dp(10), dp(15), dp(15)
-    BlueLabel:
-        text: 'Issue #' + root.issue_number
     FieldBox:
+        padding: 0, 0
+        height: self.minimum_height
+        BlueLabel:
+            id: _issue_name_label
+            padding: 5, 0
+            text: 'Issue #' + root.issue_number
         Label:
-            text: 'Add copy'
-            width: _variant_label.width
-            text_size: self.size
-        TextInput:
-        Label:
-            text: 'location'
-            width: _variant_label.width
-            text_size: self.size
-        TextInput:
-        Button:
-            text: 'add'
+            size_hint_x: 1
+        AddExtraButton:
+            id: _add_copy_button
+            issue_info_container: root
+#            extra_type: 'copy'
+        AddExtraButton:
+            id: _add_variant_button
+            issue_info_container: root
+            extra_type: 'variant'
     FieldBox:
-        Label:
-            id: _variant_label
-            text: 'Add variant'
-        TextInput:
-        Button:
-            text: 'add'
-    FieldBox:
+        padding: dp(10), dp(0)
         height: dp(100)
         Label:
+            id: _notes_label
             text: 'Notes'
-            width: _variant_label.width
+            width: dp(90)
             valign: 'top'
             text_size: self.size
         TextInput:
             multiline: True
-
     FieldBox:
+        height: dp(64)
+        valign: 'bottom'
         FieldLabel:
         Button:
+            size_hint_y: .5
             text: 'cancel'
         Button:
+            size_hint_y: .5
             text: 'OK'
             on_release: root.close_window(root.parent)
+
+<AddExtraButton>:
+    extra_type: 'copy'
+    font_name: 'fonts/ComicBook.otf'
+    font_size: sp(15.5)
+    valign: 'center'
+    text: 'set label with issueinfobox'
+    on_release: self.issue_info_container.add_extra_box(self.text[4:]) if self.state == 'down' else self.issue_info_container.remove_extra_box(self.extra_type)
+
+<ExtraIssueBox>:
+    extra_number_label: _extra_number_label
+    size_hint: 1, None
+    height: self.minimum_height
+    padding: dp(10), 0
+    FieldBox:
+        Label:
+            id: _extra_number_label
+            text: root.box_label
+            width: dp(90)
+            text_size: self.size
+        FieldBox:
+            size_hint_x: 1
+            TextInput:
+                id: _extra_note_text
+                focus: True
+                text_validate_unfocus: False
+                on_text_validate: self.get_focus_next().focus = True if self.text else False
+            TextButton:
+                text: 'X'
+                font_name: 'fonts/ComicBook.otf'
+                size_hint: None, 1
+                width: self.texture_size[0]
+                on_release: root.remove_me()
+
