@@ -8,7 +8,6 @@
             text: 'Enter issues'
         TextInput:
             id: _issues_text
-            text_validate_unfocus: True
             on_text_validate: root.load_issues(_issues_text.text) if self.text else None
             # status_bar
             default_text: "Enter the number of standard issues and press ENTER. For ongoing series, enter something like \"142+\". Weird things like \"25-132\" would also work."
@@ -107,7 +106,7 @@
             on_release: root.close_window(root.parent)
         Button:
             size_hint_y: .5
-            text: 'save'
+            text: 'save & close'
             on_release: root.save_changes()
 
 <AddExtraButton>:

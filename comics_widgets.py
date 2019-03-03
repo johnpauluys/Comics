@@ -372,6 +372,7 @@ class StatusBar(FieldBox):
     current_status = ObjectProperty()
 
     def set_status(self, status_msg, msg_type='hint'):
+        print('setting status: {}'.format(status_msg))
 
         if msg_type == 'normal':
             self.current_status.text = ''
@@ -393,6 +394,7 @@ class StatusBar(FieldBox):
 
     def clear_status(self):
         """ Clear status """
+        print('clearing status')
         self.current_status.text = ''
 
     def confirm(self, question, callback, decline='no', confirm='yes'):
