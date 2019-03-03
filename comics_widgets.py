@@ -44,11 +44,14 @@ class FieldBox(BoxLayout):
 class FieldLabel(Label):
     pass
 
+
 class TextButton(Button):
     pass
 
+
 class TextToggleButton(ToggleButton):
     pass
+
 
 class MyTextInput(TextInput):
     """ Custom TextInput class """
@@ -417,6 +420,9 @@ class StatusBar(FieldBox):
         self.set_status(question, 'notice')
         self.add_widget(no)
         self.add_widget(yes)
+
+    def get_current_status(self):
+        return self.current_status.text
 
 
 class InfoDropDownContent(BoxLayout):

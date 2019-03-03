@@ -90,7 +90,7 @@
         Label:
             id: _notes_label
             text: 'Notes'
-            width: dp(90)
+            width: dp(105)
             valign: 'top'
             text_size: self.size
         TextInput:
@@ -119,17 +119,19 @@
     on_release: self.issue_info_container.add_extra_box(self.text[4:]) if self.state == 'down' else self.issue_info_container.remove_extra_box(self.extra_type)
 
 <ExtraIssueBox>:
-    number_label: _extra_number_label
+    number_label: _number_label
     note: _extra_note_text
     size_hint: 1, None
     height: self.minimum_height
     padding: dp(10), 0
     FieldBox:
         Label:
-            id: _extra_number_label
+            id: _number_label
             text: root.box_label
-            width: dp(90)
+            width: dp(105)
             text_size: self.size
+            shorten: True
+            shorten_from: 'right'
         FieldBox:
             size_hint_x: 1
             TextInput:

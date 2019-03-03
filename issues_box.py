@@ -55,6 +55,7 @@ class IssuesBox(BoxLayout):
         # if self.odd_issues_text.text:
         #     self.load_odd_issues(self.status_bar)
         # return True
+        # TODO set status... tried, didn't work
 
     def parse_issue_ranges(self, issue_ranges):
 
@@ -166,7 +167,6 @@ class IssuesBox(BoxLayout):
                 # append issue to group
                 split_list[counter].append(i)
         return split_list, counter
-
 
     def populate_issue_container(self):
         """ Add issue buttons to issues container box """
@@ -300,72 +300,120 @@ class IssueInfoBox(BoxLayout):
         self.load_prev_info()
 
     def load_prev_info(self):
-        print("load_prev")
-        print(self.issues_box.issues_dict)
+        """ Load previously entered data, if any """
 
+        # reset counters TODO this still messes up, when removing a previously added extra
         self.extra_issues['copy'] = 0 if self.extra_issues['copy'] >= 2 else 1
         self.extra_issues['variant'] = 0
 
+        # iterate over sorted dict keys
         for i in sorted(self.issues_box.issues_dict[self.issues_dict_index]):
-            print(self.extra_issues)
+            print(self.extra_issues) # debugging
+
+            # check if notes exist
             if i == 'notes':
+                # add old text to notes text input field
                 self.notes.text = self.issues_box.issues_dict[self.issues_dict_index][i]
+
+            # check for copies and variants
+            # TODO Don't like this and it still causes problems. Find and fix them
             elif 'copy' in i or 'variant' in i:
+                # convert key to box label
                 box_label = self.convert_key_string(i)
+                # set extra notes text
                 note = self.issues_box.issues_dict[self.issues_dict_index][i]
+                # add extra box widget
                 self.add_extra_box(box_label, note)
 
     def on_extra_issues(self, instance, value):
+        """ Change text of add buttons """
         self.add_copy_button.text = 'add {}'.format(self.nth_string('copy'))
         self.add_variant_button.text = 'add {}'.format(self.nth_string('variant'))
 
     def close_window(self, issue_box):
+        """ Remove info window """
+        # set status variable to closed
         self.issues_box.info_window_status = 'close'
+        # remove widget
         issue_box.remove_widget(self)
 
     def save_changes(self):
+        """ Save changes made on issue """
+
+        # TODO add some confirmation features
+
+        # get rid of old info
         self.clear_extras()
+
+        # iterate of current children
         for c in self.children:
+            # find extra issue boxes and store their value into issues dict
             if isinstance(c, ExtraIssueBox):
+                # convert sting to to index
                 key = self.convert_string_index(c.number_label.text)
+                # set user entered value to key in issues dict
                 self.issues_box.issues_dict[self.issues_dict_index][key] = c.note.text
-        if self.notes.text:
-            self.issues_box.issues_dict[self.issues_dict_index]['notes'] = self.notes.text
-        print(self.issues_box.issues_dict)
+
+        # add notes to issues_dict
+        self.issues_box.issues_dict[self.issues_dict_index]['notes'] = self.notes.text
+
+        # close window
+        self.close_window(self.parent)
 
     def convert_string_index(self, string):
+        """ Convert string to index, eg. '2nd Copy' returns 'copy02' """
+
+        # check whether a number is present
+        # TODO this needs some attention
         if ' ' in string:
             return "{}{:02d}".format(string.split()[1].lower(), int(string.split()[0][:-2]))
         return "{}01".format(string.lower())
 
     def convert_key_string(self, key):
         """ Convert key eg. 'copy02' or 'variant01' to '2nd Copy' or 'Variant' """
+
+        # split key into type and number
         extra_type, extra_count = key[:-2], int(key[-2:])
+        # return formatted string
         return self.nth_string(extra_type, extra_count - 1)
 
     def clear_extras(self):
+        """ Clear all extra info to avoid using old keys, this is only necessary for copies and variants """
+
+        # iterate over sorted dict keys
         for k in sorted(self.issues_box.issues_dict[self.issues_dict_index]):
+            # find copies and variants info
             if 'copy' in k or 'variant' in k:
+                # delete data from original dict
                 del self.issues_box.issues_dict[self.issues_dict_index][k]
 
     def add_extra_box(self, box_label, note=''):
         """ Add new copy or variant box to layout """
+
+        # handle variants
         if 'variant' in box_label.lower():
+            # increase variable count
             self.extra_issues['variant'] += 1
+            # set type
             extra_type = 'variant'
+        # handle copies
         elif 'copy' in box_label.lower():
             self.extra_issues['copy'] += 1
             extra_type = 'copy'
         else:
+            # debugging purposes. could raise an error, but this should never happen with the correct coding
             print("ERROR: Something went wrong!")
             return False
-
+        # add new extra
         new_box = ExtraIssueBox(self, extra_type, box_label, note)
+        # using index 1 to insert it after the issue input
         self.add_widget(new_box, 1)
 
     def nth_string(self, extra_type, extra_count=None):
         """ Return a string depending on amount of extra copies. eg. '2nd copy', '3rd copy', etc"""
+        # TODO repeating the same todo for a problem over a buch of functions
         extra_count = self.extra_issues[extra_type] if extra_count is None else extra_count
+
         if extra_count == 0:
             return '{}'.format(extra_type.title())
         elif extra_count == 1:
@@ -394,25 +442,26 @@ class ExtraIssueBox(BoxLayout):
     #     self.extra_number_label.text = self.box_label
 
     def remove_me(self):
+        """ Remove extra """
+        # TODO remove data from issues_dict
         self.issue_info_box.extra_issues[self.extra_type] -= 1
         self.fix_numbering()
         self.issue_info_box.remove_widget(self)
 
     def fix_numbering(self):
+        # get current count
         current_count = self.issue_info_box.extra_issues[self.extra_type]
-        for c in self.issue_info_box.children:
 
+        # iterate over all children
+        for c in self.issue_info_box.children:
+            # find extra_issues_boxes
             if isinstance(c, type(self)) and c.extra_type == self.extra_type:
+                # adjust current count
                 current_count -= 1
+                # change label accordingly
                 c.box_label = self.issue_info_box.nth_string(self.extra_type, current_count)
 
 
 class AddExtraButton(TextButton):
     extra_type = StringProperty()
     issue_info_container = ObjectProperty()
-
-    # def __init__(self, issue_info_container, **kwargs):
-    #     super(ExtraToggleButton, self).__init__(**kwargs)
-    #     self.issue_info_container = issue_info_container
-
-
