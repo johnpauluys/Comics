@@ -214,44 +214,6 @@ class ScreenNew(ComicsScreen):
 
             status_bar.set_status(error_msg, 'notice')
 
-    def select_issue_range(self, range_input, layouts_list):
-        """ Select issues """
-
-        issues = []
-        for n in [i.strip() for i in range_input.text.split(',')]:
-            if match(r'^[1-9]\d*\-[1-9]\d*', n):
-                start, end = n.split('-')
-                issues += [str(issue) for issue in list(range(int(start), int(end) + 1))]
-            else:
-                issues.append(n)
-
-        for layout in layouts_list:
-            for child in layout.children:
-                if child.text in issues:
-                    print(child.text, issues)
-                    child.state = 'down'
-                    issues.remove(child.text)
-        if issues:
-            missing_issues = ', '.join(issues)
-            self.status_bar.set_status("Something went wrong. {} not in issues.".format(missing_issues), 'notice')
-            range_input.text = missing_issues
-            range_input.select_all()
-        else:
-            range_input.text = ''
-        range_input.focus = True
-
-    def select_all_issues(self, layouts_list):
-
-        for layout in layouts_list:
-
-            for child in layout.children:
-                child.state = 'down'
-
-    def deselect_all_issues(self, layouts_list):
-
-        for layout in layouts_list:
-            for child in layout.children:
-                child.state = 'normal'
 
     def add_new_edition(self, container, edition_name, edition_issues):
         """ Add new edition to edition's section """
@@ -606,7 +568,6 @@ class ScreenNew(ComicsScreen):
 
         # set grouping
         self.data['grouping'] = self.set_group(app, cur)
-
 
         print()
         for i in sorted(self.data):

@@ -1,4 +1,5 @@
 from kivy.lang import Builder
+from kivy.graphics import Color, Rectangle
 from kivy.properties import DictProperty, NumericProperty, ObjectProperty, OptionProperty, StringProperty
 from comics_widgets import BoxLayout, FieldBox, Label, TextButton, ToggleButton
 from comics_widgets import TestBox  # debugging
@@ -23,21 +24,8 @@ class IssuesBox(BoxLayout):
     current_row = ObjectProperty()
 
     # all issue data
+    issues_button_dict = DictProperty()
     issues_dict = DictProperty()
-
-    def test(self):
-        print('testing')
-        for k in sorted(self.issues_dict):
-            print('{:3d}: {}'.format(k, self.issues_dict[k]))
-
-    @staticmethod  # debugging
-    def on_issues_dict(instance, value):
-        if value:
-            print('{}: issues_dict changed'.format(instance.__class__.__name__))
-            for k in sorted(value):
-                print('{:3d}: {}'.format(k, value[k]))
-        else:
-            print('{}: issues_dict emptied'.format(instance.__class__.__name__))
 
     def on_info_window_status(self, instance, value):
         """ Disable/Enable all IssueRowBoxes not containing IssueInfoBoxes """
@@ -103,14 +91,14 @@ class IssuesBox(BoxLayout):
                 on_going = True
                 i = i[:-1]
             # fill issues_dict
-            issues_dict = {**issues_dict, **{k: {'owned': 0} for k in range(1, int(i) + 1)}}
+            issues_dict = {**issues_dict, **{k: {} for k in range(1, int(i) + 1)}}
 
         # handle multiple values
         else:
             for i in [r.strip() for r in issue_ranges.split(',')]:
                 # handle single numbers and 0
                 if match(r'^\d{1,3}$', i):
-                    issues_dict[int(i)] = {'owned': 0}
+                    issues_dict[int(i)] = {}
 
                 # handle ranges eg. 1-20, 22-24, 28-30+
                 elif match(r'^\d{1,3}[\-]\d{1,3}\+?$', i):
@@ -122,12 +110,12 @@ class IssuesBox(BoxLayout):
 
                     # first and last number of range (swap 1st and last for values like '20-1'
                     start, end = sorted(int(n) for n in i.split('-'))
-                    issues_dict = {**issues_dict, **{k: {'owned': 0} for k in range(start, end + 1)}}
+                    issues_dict = {**issues_dict, **{k: {} for k in range(start, end + 1)}}
 
                 # handle single negative values, eg. -1, -1.25 and 0
                 elif match(r'^-\d{1,3}(.\d{1,2})?$', i):
                     # check whether int or float was given
-                    issues_dict[float(i) if '.' in i else int(i)] = {'owned': 0}
+                    issues_dict[float(i) if '.' in i else int(i)] = {}
                 else:
                     # if any given string couldn't be parsed, stop operation
                     errors.append(i)
@@ -219,7 +207,7 @@ class IssuesBox(BoxLayout):
                 new_btn = IssueToggleButton(self, self.issues_container, i)
                 self.current_row.add_widget(new_btn)
                 self.item_counter += 1
-
+                self.issues_button_dict[i] = new_btn
         if std:
             for i in self.pad_issues(std, bool(pre)):
                 if i == '':
@@ -229,10 +217,103 @@ class IssuesBox(BoxLayout):
                     new_btn = IssueToggleButton(self, self.issues_container, i)
                     self.current_row.add_widget(new_btn)
                     self.item_counter += 1
+                    self.issues_button_dict[i] = new_btn
+
+        self.add_issue_selector()
+
+    def add_issue_selector(self):
+
+        # create instance of selector box
+        issue_selector = IssueSelector(self)
+
+        # check whether bottom row of issue_container contains buttons (This acts as a work around for another problem
+        # TODO find the real source of this problem and fix it. Has something to do with group_issues() or pad_issues()
+        if any(isinstance(w, IssueToggleButton) for w in self.issues_container.children[0].children):
+            # create new row and change height and add issue_selector
+            new_row = IssueRowBox(height=issue_selector.height)
+            new_row.add_widget(issue_selector)
+            # add new row to issues container
+            self.issues_container.add_widget(new_row)
+        else:
+            self.issues_container.children[0].clear_widgets()
+            self.issues_container.children[0].height = issue_selector.height
+            self.issues_container.children[0].add_widget(issue_selector)
 
 
 class IssueRowBox(BoxLayout):
     pass
+
+
+class IssueSelector(FieldBox):
+
+    def __init__(self, issues_box, **kwargs):
+        super(IssueSelector, self).__init__(**kwargs)
+        self.issues_box = issues_box
+
+    def test(self):
+        print(type(self.issues_box.issues_dict))
+
+    def select_issue_range(self, range_input):
+        """ Select issues in given range """
+
+        # parse range
+        issue_selection_list = self.parse_range_input(range_input)
+
+        errors = []
+        if issue_selection_list:
+            for i in issue_selection_list:
+                try:
+                    # select issue
+                    self.issues_box.issues_button_dict[i].state = 'down'
+                except KeyError:
+                    # append issue number to errors list
+                    errors.append(str(i))
+
+            # set status bar
+            if errors:
+                # set status if errors were detected
+                if len(errors) > 1:
+                    msg = ('The following aren\'t in current given issues: {}'.format(', '.join(errors)), 'notice')
+                else:
+                    msg = ('The number {} is not in current given issues.'.format(', '.join(errors)), 'notice')
+            else:
+                msg = ('Selection successfully completed.',)
+        else:
+            msg = ('\'{}\' is an invalid range.'.format(range_input), 'error')
+
+        self.issues_box.status_bar.set_status(*msg)
+
+    def parse_range_input(self, range_input):
+        """ Return a list of issue numbers parsed from range(s)
+            '1-3'    would return [1, 2, 3,]
+            '1-3, 5' would return [1, 2, 3, 5] """
+
+        selection = []
+        # iterate over each section of input
+        for n in [i.strip() for i in range_input.split(',')]:
+            # handle ranges eg. 1-15
+            if match(r'^[1-9]\d*\s*-\s*[1-9]\d*', n):
+                start, end = n.split('-')
+                selection += [i for i in list(range(int(start), int(end) + 1))]
+            else:
+                try:
+                    # handle single numbers
+                    selection.append(float(n) if '.' in n else int(n))
+                except ValueError:
+                    msg = '\'{}\' is not a valid entry.'.format(n)
+                    self.issues_box.status_bar.set_status(msg, 'error')
+                    return False
+        return selection
+
+    def select_all_issues(self):
+        """ Select all issues """
+        for i in self.issues_box.issues_button_dict.values():
+            i.state = 'down'
+
+    def deselect_all_issues(self):
+        """ Deselect all issues """
+        for i in self.issues_box.issues_button_dict.values():
+            i.state = 'normal'
 
 
 class IssueToggleButton(ToggleButton):
@@ -279,6 +360,13 @@ class IssueToggleButton(ToggleButton):
         # update copy count
         self.extra_issues_count['copy'] += 1 if value else -1
 
+    def mark_note(self, mark=True):
+        print('marking')
+        if mark:
+            self.text = self.text + '*' if not self.text.endswith('*') else self.text
+        else:
+            self.text = self.text[:-1] if self.text.endswith('*') else self.text
+
     def on_touch_down(self, touch):
 
         if self.collide_point(*touch.pos):
@@ -315,39 +403,6 @@ class IssueToggleButton(ToggleButton):
 
     def reverse_state(self):
         self.state = 'down' if self.state == 'normal' else 'normal'
-
-    # @staticmethod
-    # def convert_issue_number(btn_text):
-    #     """ Convert IssueToggleButton.text from string to appropriate type """
-    #
-    #     btn_text = btn_text.strip()
-    #
-    #     if match(r'^((-?[1-9]\d{0,3})|0)$', btn_text):
-    #         # handle ints
-    #         # print("int: {}".format(btn_text))
-    #         return int(btn_text)
-    #     elif match(r'^-?\d{1,4}\.\d{1,2}$', btn_text):
-    #         # handle fractions
-    #         # print("float: {}".format(btn_text))
-    #         return float(btn_text)
-    #     elif match(r'^-?\d{1,4}((\D{1,2})|((\.\d{1,2})?_((\D|\d){1,2})?))$', btn_text):
-    #         # handle strings like 1a, 1_, 1_a, 1_ab, 1_a1, etc
-    #         # print("str: {}".format(btn_text))
-    #         return str(btn_text)
-    #     else:
-    #         print("no match: {}".format(btn_text))
-
-    # def on_state(self, instance, value):
-    #     """ Add or remove btn from owned issues list """
-    #
-    #     if value == 'down' and self.convert_issue_number(self.text) not in self.user_data['owned_issues']:
-    #         self.user_data['owned_issues'].append(self.convert_issue_number(self.text))
-    #     if value == 'normal' and self.convert_issue_number(self.text) in self.user_data['owned_issues']:
-    #         self.user_data['owned_issues'].remove(self.convert_issue_number(self.text))
-
-
-class IssueSelector(FieldBox):
-    pass
 
 
 class IssueInfoBox(BoxLayout):
@@ -438,7 +493,7 @@ class IssueInfoBox(BoxLayout):
         # add notes to issues_dict
         if self.notes.text:
             self.issues_box.issues_dict[self.index_in_dict]['notes'] = self.notes.text
-
+            self.issue.mark_note(True)
         # close window
         self.close_window(self.parent)
         # inform user that everything went okay

@@ -17,9 +17,6 @@
             text: 'add'
             disabled: False if _issues_text.text else True
             on_release: root.load_issues(_issues_text.text) if self.text else None
-        Button:
-            text: 'print issues'
-            on_release: root.test()
     ScrollView:
         height: root.height - (_issues_text.height + dp(5))
         BoxLayout:
@@ -29,24 +26,32 @@
             height: self.minimum_height
             padding: dp(5)
 
-<IssueSelector@FieldBox>
+<IssueSelector>
     size_hint_x: 1
     TextInput:
         id: _select_range_input
         text_validate_unfocus: False
+        focus: True
         size_hint: 1, 1
-        on_text_validate: root.select_issue_range(self, _standard_issues_container)
+        on_text_validate: root.select_issue_range(self.text) if self.text else None
     Button:
         text: 'select range'
-        on_release: root.select_issue_range(_select_range_input, _standard_issues_container)
+        disabled: False if _select_range_input.text else True
+        on_release: root.select_issue_range(_select_range_input.text)
     Button:
         text: 'all'
-        on_release: root.select_all_issues(_standard_issues_container)
+        on_release: root.select_all_issues()
     Button:
         text: 'none'
-        on_release: root. deselect_all_issues(_standard_issues_container)
+        on_release: root.deselect_all_issues()
 
 <IssueRowBox>
+#    canvas:
+#        Color:
+#            rgba: 0, 1, 0 , .2
+#        Rectangle:
+#            pos: self.pos
+#            size: self.size
     orientation: 'horizontal'
     size_hint: 1, None
     height: dp(20)

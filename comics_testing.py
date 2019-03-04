@@ -15,9 +15,9 @@ class TestSorting(unittest.TestCase):
 
     def test_get_issues_dict(self):
 
-        standard_dict = {1: {'owned': 0},
-                         2: {'owned': 0},
-                         3: {'owned': 0}}
+        standard_dict = {1: {},
+                         2: {},
+                         3: {}}
 
         # print('testing \'3\'')
         issue_range = '3'
@@ -41,7 +41,7 @@ class TestSorting(unittest.TestCase):
 
         # print('testing \'3, 5-7\'')
         issue_range = '3, 5-7'
-        standard_dict = {3: {'owned': 0}, 5: {'owned': 0}, 6: {'owned': 0}, 7: {'owned': 0}}
+        standard_dict = {3: {}, 5: {}, 6: {}, 7: {}}
 
         result = IssuesBox.parse_issue_ranges(IssuesBox, issue_range)
         self.assertEqual(result, (standard_dict, False))
@@ -49,11 +49,11 @@ class TestSorting(unittest.TestCase):
         standard_dict = {}
 
         # print('testing \'0, -1, -1.5\'')
-        issue_range = {'0': {**standard_dict, **{0: {'owned': 0}}},
-                       '-1': {**standard_dict, **{-1: {'owned': 0}}},
-                       '-1.5': {**standard_dict, **{-1.5: {'owned': 0}}},
-                       '-1.25': {**standard_dict, **{-1.25: {'owned': 0}}},
-                       '-1, -1.5, -1.25': {**standard_dict, **{-1: {'owned': 0}, -1.5: {'owned': 0}, -1.25: {'owned': 0}}}
+        issue_range = {'0': {**standard_dict, **{0: {}}},
+                       '-1': {**standard_dict, **{-1: {}}},
+                       '-1.5': {**standard_dict, **{-1.5: {}}},
+                       '-1.25': {**standard_dict, **{-1.25: {}}},
+                       '-1, -1.5, -1.25': {**standard_dict, **{-1: {}, -1.5: {}, -1.25: {}}}
                        }
 
     def test_convert_string_index(self):
@@ -63,7 +63,7 @@ class TestSorting(unittest.TestCase):
 
         for i in input_output:
 
-            result = IssueInfoBox.convert_string_key(IssueInfoBox, i[0])
+            result = IssueInfoBox.convert_string_key(i[0])
             self.assertEqual(i[1], result)
 
     def test_convert_key_string(self):
@@ -73,7 +73,7 @@ class TestSorting(unittest.TestCase):
 
         for i in input_output:
 
-            result = IssueInfoBox.convert_key_string(IssueInfoBox, i[1])
+            result = IssueInfoBox.convert_key_string(i[1])
             self.assertEqual(i[0], result)
 
 
