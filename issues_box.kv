@@ -9,13 +9,17 @@
         TextInput:
             id: _issues_text
             on_text_validate: root.load_issues(_issues_text.text) if self.text else None
+            text_validate_unfocus: True
             # status_bar
-            default_text: "Enter the number of standard issues and press ENTER. For ongoing series, enter something like \"142+\". Weird things like \"25-132\" would also work."
-            on_focus: root.status_bar.set_status(self.default_text) if self.focus else root.status_bar.clear_status()
+            default_text: "Enter the number of issues. For ongoing series, add a plus sign, eg. 13+. Enter ranges like \"25-65\", as well as single issues, eg. '0, -1, 1'. Separate with commas."
+            on_focus: root.status_bar.set_status(self.default_text) if self.focus else None
         Button:
             text: 'add'
             disabled: False if _issues_text.text else True
             on_release: root.load_issues(_issues_text.text) if self.text else None
+        Button:
+            text: 'print issues'
+            on_release: root.test()
     ScrollView:
         height: root.height - (_issues_text.height + dp(5))
         BoxLayout:
@@ -72,13 +76,13 @@
         BlueLabel:
             id: _issue_name_label
             padding: dp(5), dp(0)
-            text: 'Issue # ' + root.issue_number
+            text: 'Issue #' + root.issue.text if root.issue else ''
         Label:
             size_hint_x: .3
         AddExtraButton:
             id: _add_copy_button
             issue_info_container: root
-#            extra_type: 'copy'
+#            extra_type: 'copy' NOT NEEDED as it is the default. leaving this here to avoid confusion
         AddExtraButton:
             id: _add_variant_button
             issue_info_container: root
@@ -95,6 +99,9 @@
         TextInput:
             id: _notes_text
             multiline: True
+            # status_bar
+            default_text: 'Enter notes for selected issue.'
+            on_focus: root.issues_box.status_bar.set_status(self.default_text) if self.focus else None
     FieldBox:
         padding: dp(10), dp(0)
         height: dp(64)
@@ -114,7 +121,6 @@
     font_name: 'fonts/ComicBook.otf'
     font_size: sp(15.5)
     size_hint_x: .35
-#    text: 'set label with issueinfobox'
     on_release: self.issue_info_container.add_extra_box(self.text[4:]) if self.state == 'down' else self.issue_info_container.remove_extra_box(self.extra_type)
 
 <ExtraIssueBox>:
@@ -137,6 +143,9 @@
                 id: _extra_note_text
                 focus: True
                 on_text_validate: self.get_focus_next().focus = True if self.text else False
+                copy_status_msg: 'Enter copy description and/or location information.'
+                variant_status_msg: 'Enter name of variant.'
+                on_focus: root.issues_box.status_bar.set_status(self.copy_status_msg if root.extra_type == 'copy' else self.variant_status_msg) if self.focus else None
             TextButton:
                 text: 'X'
                 font_name: 'fonts/ComicBook.otf'

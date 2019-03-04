@@ -14,6 +14,14 @@ from re import match
 Builder.load_file('comics_widgets.kv')
 
 
+class TestBox(BoxLayout):
+    pass
+
+
+class TestLabel(Label):
+    pass
+
+
 class ComicsScreen(Screen):
 
     @staticmethod
@@ -372,7 +380,7 @@ class StatusBar(FieldBox):
     current_status = ObjectProperty()
 
     def set_status(self, status_msg, msg_type='hint'):
-        print('setting status: {}'.format(status_msg))
+        print('{}: setting status: {}'.format(self.__class__.__name__, status_msg))
 
         if msg_type == 'normal':
             self.current_status.text = ''
@@ -394,7 +402,7 @@ class StatusBar(FieldBox):
 
     def clear_status(self):
         """ Clear status """
-        print('clearing status')
+        print('{}: clearing status'.format(self.__class__.__name__))
         self.current_status.text = ''
 
     def confirm(self, question, callback, decline='no', confirm='yes'):

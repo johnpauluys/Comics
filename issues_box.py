@@ -1,77 +1,115 @@
 from kivy.lang import Builder
 from kivy.properties import DictProperty, NumericProperty, ObjectProperty, OptionProperty, StringProperty
 from comics_widgets import BoxLayout, FieldBox, Label, TextButton, ToggleButton
+from comics_widgets import TestBox  # debugging
 from re import match
 
 Builder.load_file('issues_box.kv')
 
 
 class IssuesBox(BoxLayout):
+    """ Widget to hold all issue functionailty """
 
     # properties from screen_new
     screen = ObjectProperty()
     status_bar = ObjectProperty()
 
     # local properties
-    issues_container = ObjectProperty()
-    current_box = ObjectProperty()
-    issue_counter = NumericProperty(0)
     info_window_status = OptionProperty('close', options=['open', 'close'])
+    item_counter = NumericProperty(0)
 
-    # data
+    # container to be filled with issue buttons
+    issues_container = ObjectProperty()
+    current_row = ObjectProperty()
+
+    # all issue data
     issues_dict = DictProperty()
+
+    def test(self):
+        print('testing')
+        for k in sorted(self.issues_dict):
+            print('{:3d}: {}'.format(k, self.issues_dict[k]))
+
+    @staticmethod  # debugging
+    def on_issues_dict(instance, value):
+        if value:
+            print('{}: issues_dict changed'.format(instance.__class__.__name__))
+            for k in sorted(value):
+                print('{:3d}: {}'.format(k, value[k]))
+        else:
+            print('{}: issues_dict emptied'.format(instance.__class__.__name__))
 
     def on_info_window_status(self, instance, value):
         """ Disable/Enable all IssueRowBoxes not containing IssueInfoBoxes """
-        print("issue info window {}s".format(value))
+        print("{}: issue info window {}s".format(self.__class__.__name__, value))
         for child in self.issues_container.children:
             child.disabled = True if not isinstance(child, IssueInfoBox) and value == 'open' else False
 
-    def on_issue_counter(self, instance, value):
+    def on_item_counter(self, instance, value):
         """ Create and add a new IssueRowBox for every ten issues """
-        if value % 10 == 0:
-            self.issues_container.add_widget(self.current_box)
-            self.current_box = IssueRowBox()
+        if value and value % 10 == 0:
+            self.issues_container.add_widget(self.current_row)
+            self.current_row = IssueRowBox()
+
+    def clear_issues_container(self):
+        """ Reset issues container """
+
+        if not self.issues_container.children:
+            return
+        print('{}: clearing all issues'.format(self.__class__.__name__))
+        # clear issue container
+        self.issues_container.clear_widgets()
+        # reset counter (this also sets a new issue row)
+        self.item_counter = 0
 
     def load_issues(self, issue_ranges):
         """ Load standard issues based on what user entered """
 
+        # remove any issues
+        self.clear_issues_container()
+
+        print("{}: loading issues".format(self.__class__.__name__))
+
+        # add issues to issues_dict and set ongoing series variable
         self.issues_dict, self.screen.ongoing_series = self.parse_issue_ranges(issue_ranges)
 
         if self.issues_dict:
 
-            # clear standard issue container
-            self.issues_container.clear_widgets()
-            self.issue_counter = 0
-            self.current_box = IssueRowBox()
+            # set new current_row
+            self.current_row = IssueRowBox()
+
             # add issue toggle buttons to container
             self.populate_issue_container()
-            # self.current_box = IssueContainerBox()
-            # self.add_widget(self.current_box)
-        self.status_bar.set_status("Select owned issue(s) by single-clicking issue number or double-click to open "
-                                   "extra options.", 'hint')
+
+            # self.current_row = IssueContainerBox()
+            # self.add_widget(self.current_row)
+            self.status_bar.set_status("Select owned issue(s) by single-clicking issue number or double-click to open "
+                                       "extra options.", 'hint')
 
     def parse_issue_ranges(self, issue_ranges):
+        """ Return a dictionary from issue ranges (user input) and set whether it is an ongoing series """
+        print('{}: parsing \'{}\''.format(self.__class__.__name__, issue_ranges))
 
-        print('parsing string: {}'.format(issue_ranges))
-
+        # set local variables
         issues_dict = {}
         on_going = False
         errors = []
 
+        # handle single number of issues. eg '150' or '150' for ongoing series
         if match(r'^[1-9]\d{0,2}\+?$', issue_ranges):
             i = issue_ranges
             # check for ongoing series
             if i.endswith('+'):
                 on_going = True
                 i = i[:-1]
-
+            # fill issues_dict
             issues_dict = {**issues_dict, **{k: {'owned': 0} for k in range(1, int(i) + 1)}}
+
+        # handle multiple values
         else:
             for i in [r.strip() for r in issue_ranges.split(',')]:
                 # handle single numbers and 0
                 if match(r'^\d{1,3}$', i):
-
                     issues_dict[int(i)] = {'owned': 0}
 
                 # handle ranges eg. 1-20, 22-24, 28-30+
@@ -82,24 +120,26 @@ class IssuesBox(BoxLayout):
                         on_going = True
                         i = i[:-1]
 
+                    # first and last number of range (swap 1st and last for values like '20-1'
                     start, end = sorted(int(n) for n in i.split('-'))
                     issues_dict = {**issues_dict, **{k: {'owned': 0} for k in range(start, end + 1)}}
 
                 # handle single negative values, eg. -1, -1.25 and 0
                 elif match(r'^-\d{1,3}(.\d{1,2})?$', i):
-
+                    # check whether int or float was given
                     issues_dict[float(i) if '.' in i else int(i)] = {'owned': 0}
                 else:
+                    # if any given string couldn't be parsed, stop operation
                     errors.append(i)
+                    print("string not valid: {}".format(i))
                     self.status_bar.set_status('The following range(s) caused problems: "{}".'.format(', '.join(errors)),
                                                'error')
-                    print("not caught by regex: {}".format(i))
+                    return {}, False
 
+        # if entire string fails, let user know
         if not issues_dict:
             self.status_bar.set_status('"{}" couldn\'t be parsed. Please check input again.'.format(issue_ranges),
                                        'error')
-
-        print(issues_dict)
         return issues_dict, on_going
 
     def pad_issues(self, std_issues_dict, pre_issues_entered=False):
@@ -109,6 +149,7 @@ class IssuesBox(BoxLayout):
         padded_issues = []
         # TODO user entries like -1, 20 don't behave as expected
         # TODO has to do with 20 % 10 returning 0
+        # TODO rewrite this function, it kinda sucks
 
         # handle multiple lists
         if std_issues_dict[-1] != len(std_issues_dict):
@@ -165,31 +206,29 @@ class IssuesBox(BoxLayout):
     def populate_issue_container(self):
         """ Add issue buttons to issues container box """
 
+        # create sorted lists of issues
         pre = sorted(i for i in self.issues_dict if i <= 0)
         std = sorted(i for i in self.issues_dict if i > 0)
-        self.issue_counter = 0
-        self.issues_container.clear_widgets()
-        print(pre)
-        print(std)
 
         if pre:
+            # add empty buttons if necessary
             for i in range(10 - len(pre) % 10):
-                self.current_box.add_widget(Label(text='', size_hint=(1, None)))
-                self.issue_counter += 1
+                self.current_row.add_widget(Label(text='', size_hint=(1, None)))
+                self.item_counter += 1
             for i in pre:
                 new_btn = IssueToggleButton(self, self.issues_container, i)
-                self.current_box.add_widget(new_btn)
-                self.issue_counter += 1
+                self.current_row.add_widget(new_btn)
+                self.item_counter += 1
 
         if std:
             for i in self.pad_issues(std, bool(pre)):
                 if i == '':
-                    self.current_box.add_widget(Label(text='', size_hint=(1, None)))
-                    self.issue_counter += 1
+                    self.current_row.add_widget(Label(text='', size_hint=(1, None)))
+                    self.item_counter += 1
                 else:
                     new_btn = IssueToggleButton(self, self.issues_container, i)
-                    self.current_box.add_widget(new_btn)
-                    self.issue_counter += 1
+                    self.current_row.add_widget(new_btn)
+                    self.item_counter += 1
 
 
 class IssueRowBox(BoxLayout):
@@ -197,59 +236,76 @@ class IssueRowBox(BoxLayout):
 
 
 class IssueToggleButton(ToggleButton):
+    """ Class representing an issue toggle button """
 
-    owned = OptionProperty(0, options=[0, 1])
-    extra_issues = DictProperty({'copy': 0, 'variant': 0})
+    # outside properties
     issues_box = ObjectProperty()
-    issue_info_box = ObjectProperty()
+    issue_container = ObjectProperty()
 
-    def __init__(self, issues_box, issues_container, issues_dict_index, **kwargs):
+    # own properties
+    index_in_dict = NumericProperty()
+    info_box = ObjectProperty()
+
+    # data
+    owned = OptionProperty(0, options=[0, 1])
+    notes = StringProperty()
+    extra_issues_count = DictProperty({'copy': 0, 'variant': 0})
+
+    def __init__(self, issues_box, issues_container, index_in_dict, **kwargs):
         super(IssueToggleButton, self).__init__(**kwargs)
         self.issues_box = issues_box
         self.issues_container = issues_container
-        self.issues_dict_index = issues_dict_index
-        self.text = str(issues_dict_index)
+        self.index_in_dict = index_in_dict
 
-    def on_extra_issues(self, instance, value):
+    def on_extra_issues_count(self, instance, value):
         """ Change text of add buttons """
-        print(value)
-        copy_count = 'copy{:02d}'.format(int(self.extra_issues['copy']) + 1)
-        variant_count = 'variant{:02d}'.format(int(self.extra_issues['variant']) + 1)
+        copy_count = 'copy{:02d}'.format(int(self.extra_issues_count['copy']) + 1)
+        variant_count = 'variant{:02d}'.format(int(self.extra_issues_count['variant']) + 1)
 
         copy_str = IssueInfoBox.convert_key_string(copy_count)
         variant_str = IssueInfoBox.convert_key_string(variant_count)
-        if self.issue_info_box:
-            self.issue_info_box.add_copy_button.text = 'add {}'.format(copy_str)
-            self.issue_info_box.add_variant_button.text = 'add {}'.format(variant_str)
+        if self.info_box:
+            self.info_box.add_copy_button.text = 'add {}'.format(copy_str)
+            self.info_box.add_variant_button.text = 'add {}'.format(variant_str)
 
     def on_state(self, instance, value):
+        """ Set owned status to 1 if button is down, otherwise set it to 0 """
         self.owned = 1 if value == 'down' else 0
 
     def on_owned(self, instance, value):
-
-        print('You {}own issue {}'.format("don't " if not value else '', self.text))
-        self.issues_box.issues_dict[self.issues_dict_index]['owned'] = value
-        self.extra_issues['copy'] += 1 if value else -1
+        """ Update issues_dict accordingly, depending on state. """
+        print('{}: You {}own issue #{}'.format(instance.__class__.__name__, "don't " if not value else '', self.text))
+        self.issues_box.issues_dict[self.index_in_dict]['owned'] = value
+        # update copy count
+        self.extra_issues_count['copy'] += 1 if value else -1
 
     def on_touch_down(self, touch):
 
         if self.collide_point(*touch.pos):
+            # cancel any action if info window is open
             if self.issues_box.info_window_status == 'open':
                 return False
             # handle double-clicking
             if touch.is_double_tap:
                 # set issue as owned
                 self.state = 'down'
-                # get current index of parent
-                info_index = self.issues_container.children.index(self.parent)
-                info_box = IssueInfoBox(self, self.issues_box)
-                self.issue_info_box = info_box
-                self.issues_container.add_widget(info_box, index=info_index)
-                self.issues_box.info_window_status = 'open'
+                # open info box
+                self.open_info_box()
             else:
                 self.reverse_state()
         else:
             return super().on_touch_down(touch)
+
+    def open_info_box(self):
+        """ Open issue info box """
+        # get current index of parent. This is where info box will be inserted into
+        info_index = self.issues_container.children.index(self.parent)
+        # add info box to issues container
+        info_box = IssueInfoBox(self)
+        self.info_box = info_box
+        self.issues_container.add_widget(info_box, index=info_index)
+        # set info window status to open
+        self.issues_box.info_window_status = 'open'
 
     # def on_touch_up(self, touch):
     #
@@ -295,21 +351,27 @@ class IssueSelector(FieldBox):
 
 
 class IssueInfoBox(BoxLayout):
+    """ Class representing info box. This widget will allow user to add extra copies,
+        variants and notes to current issue """
 
-    issue_number = StringProperty()
+    # outside properties
+    issues_box = ObjectProperty()
+
+    # own relevant properties
+    issue = ObjectProperty()
+    index_in_dict = NumericProperty()
+    extra_issues = DictProperty()
+    notes = ObjectProperty()
 
     add_copy_button = ObjectProperty()
     add_variant_button = ObjectProperty()
 
-    notes = ObjectProperty()
-
-    def __init__(self, issue_widget, issues_box, **kwargs):
+    def __init__(self, issue_button, **kwargs):
         super(IssueInfoBox, self).__init__(**kwargs)
-        self.issue = issue_widget
-        self.issues_box = issues_box
-        self.issues_dict_index = issue_widget.issues_dict_index
-        self.issue_number = issue_widget.text
-        self.extra_issues = issue_widget.extra_issues
+        self.issues_box = issue_button.issues_box
+        self.issue = issue_button
+        self.index_in_dict = issue_button.index_in_dict
+        self.extra_issues = issue_button.extra_issues_count
         self.add_copy_button.text = 'add {}'.format(self.convert_type_number_string('copy',
                                                                                     int(self.extra_issues['copy']+1)))
         self.add_variant_button.text = 'add {}'.format(self.convert_type_number_string('variant',
@@ -319,27 +381,34 @@ class IssueInfoBox(BoxLayout):
     def load_prev_info(self):
         """ Load previously entered data, if any """
 
-        # reset counters TODO this still messes up, when removing a previously added extra
-        self.issue.extra_issues['copy'] = 1
-        self.issue.extra_issues['variant'] = 0
+        # reset counters
+        self.issue.extra_issues_count['copy'] = 1
+        self.issue.extra_issues_count['variant'] = 0
 
         # iterate over sorted dict keys
-        for i in sorted(self.issues_box.issues_dict[self.issues_dict_index]):
+        for i in sorted(self.issues_box.issues_dict[self.index_in_dict]):
 
             # check if notes exist
             if i == 'notes':
                 # add old text to notes text input field
-                self.notes.text = self.issues_box.issues_dict[self.issues_dict_index][i]
+                self.notes.text = self.issues_box.issues_dict[self.index_in_dict][i]
 
             # check for copies and variants
-            # TODO Don't like this and it still causes problems. Find and fix them
             elif 'copy' in i or 'variant' in i:
                 # convert key to box label
                 box_label = self.convert_key_string(i)
                 # set extra notes text
-                note = self.issues_box.issues_dict[self.issues_dict_index][i]
+                note = self.issues_box.issues_dict[self.index_in_dict][i]
                 # add extra box widget
                 self.add_extra_box(box_label, note)
+
+    def get_extras(self):
+        """ Return a list of opened extra issue boxes """
+        return [b for b in self.children if isinstance(b, ExtraIssueBox)]
+
+    def check_empty_extras(self):
+        """ Return True if any extras exist without note text """
+        return True if False in [bool(e.note.text) for e in self.get_extras()] else False
 
     def close_window(self, issue_box):
         """ Remove info window """
@@ -351,25 +420,29 @@ class IssueInfoBox(BoxLayout):
     def save_changes(self):
         """ Save changes made on issue """
 
-        # TODO add some confirmation features
+        # cancel all operations if extra boxes are without decriptions
+        if self.check_empty_extras():
+            self.issues_box.status_bar.set_status('Please fill out all copy/variant description fields.', 'error')
+            return False
 
-        # get rid of old info
+        # get rid of old info, to avoid still containing old data
         self.clear_extras()
 
-        # iterate of current children
-        for c in self.children:
-            # find extra issue boxes and store their value into issues dict
-            if isinstance(c, ExtraIssueBox):
-                # convert sting to to index
-                key = self.convert_string_key(c.number_label.text)
-                # set user entered value to key in issues dict
-                self.issues_box.issues_dict[self.issues_dict_index][key] = c.note.text
+        # iterate over extras
+        for e in self.get_extras():
+            # convert sting to to index
+            key = self.convert_string_key(e.number_label.text)
+            # set user entered value to key in issues dict
+            self.issues_box.issues_dict[self.index_in_dict][key] = e.note.text
 
         # add notes to issues_dict
-        self.issues_box.issues_dict[self.issues_dict_index]['notes'] = self.notes.text
+        if self.notes.text:
+            self.issues_box.issues_dict[self.index_in_dict]['notes'] = self.notes.text
 
         # close window
         self.close_window(self.parent)
+        # inform user that everything went okay
+        self.issues_box.status_bar.set_status('Successfully updated information for issue #{}.'.format(self.issue.text))
 
     @staticmethod
     def convert_string_key(string):
@@ -407,11 +480,11 @@ class IssueInfoBox(BoxLayout):
         """ Clear all extra info to avoid using old keys, this is only necessary for copies and variants """
 
         # iterate over sorted dict keys
-        for k in sorted(self.issues_box.issues_dict[self.issues_dict_index]):
+        for k in sorted(self.issues_box.issues_dict[self.index_in_dict]):
             # find copies and variants info
-            if 'copy' in k or 'variant' in k:
+            if 'copy' in k or 'variant' in k or k is 'notes':
                 # delete data from original dict
-                del self.issues_box.issues_dict[self.issues_dict_index][k]
+                del self.issues_box.issues_dict[self.index_in_dict][k]
 
     def add_extra_box(self, box_label, note=''):
         """ Add new copy or variant box to layout """
@@ -419,12 +492,12 @@ class IssueInfoBox(BoxLayout):
         # handle variants
         if 'variant' in box_label.lower():
             # increase variable count
-            self.issue.extra_issues['variant'] += 1
+            self.issue.extra_issues_count['variant'] += 1
             # set type
             extra_type = 'variant'
         # handle copies
         elif 'copy' in box_label.lower():
-            self.issue.extra_issues['copy'] += 1
+            self.issue.extra_issues_count['copy'] += 1
             extra_type = 'copy'
         else:
             # debugging purposes. could raise an error, but this should never happen with the correct coding
@@ -438,12 +511,15 @@ class IssueInfoBox(BoxLayout):
 
 class ExtraIssueBox(BoxLayout):
 
+    issues_box = ObjectProperty()
     box_label = StringProperty()
     number_label = ObjectProperty()
+    extra_type = StringProperty('copy')
     note = ObjectProperty()
 
     def __init__(self, issue_info_box, extra_type, box_label, note, **kwargs):
         super(ExtraIssueBox, self).__init__(**kwargs)
+        self.issues_box = issue_info_box.issues_box
         self.issue_info_box = issue_info_box
         self.extra_type = extra_type
         self.box_label = box_label
@@ -455,18 +531,16 @@ class ExtraIssueBox(BoxLayout):
     def remove_me(self):
         """ Remove extra """
         # TODO remove data from issues_dict
-        self.issue_info_box.issue.extra_issues[self.extra_type] -= 1
+        self.issue_info_box.issue.extra_issues_count[self.extra_type] -= 1
         self.issue_info_box.remove_widget(self)
         self.fix_numbering()
 
     def fix_numbering(self):
         # get current count
-        current_count = int(self.issue_info_box.issue.extra_issues[self.extra_type])
-
+        current_count = int(self.issue_info_box.issue.extra_issues_count[self.extra_type])
         # iterate over all children
-        for c in self.issue_info_box.children:
-            # find extra_issues_boxes
-            if isinstance(c, type(self)) and c.extra_type == self.extra_type:
+        for c in self.issue_info_box.get_extras():
+            if c.extra_type == self.extra_type:
                 # adjust current count
                 current_count -= 1
                 print('fix_numbering: current_count', current_count)

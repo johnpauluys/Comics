@@ -49,6 +49,11 @@ class ScreenNew(ComicsScreen):
     # error handling
     errors = ListProperty()
 
+    # debugging methods
+    @staticmethod
+    def on_ongoing_series(instance, value):
+        print("{}: series marked as ongoing".format(instance.__class__.__name__)) if value else None
+
     def on_group_chain(self, instance, value):
         """ Update grouping text to show current selected group(s) """
         self.grouping_text = ' - '.join(value)

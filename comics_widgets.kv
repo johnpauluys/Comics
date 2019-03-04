@@ -185,7 +185,7 @@
 #    background_disabled_normal: ''
 #    background_disabled_down: ''
     size_hint: 1, None
-
+    text: str(self.index_in_dict)
 
 <OtherEditionBox>:
     issues_container: _issues_container
@@ -236,7 +236,7 @@
         size_hint_x: 1
 
 # for debugging purposes:
-<TestBox@BoxLayout>:
+<TestBox>:
     canvas:
         Color:
             rgba: 1, 1, 0, .1
@@ -244,7 +244,7 @@
             pos: self.pos
             size: self.size
 
-<TestLabel@Label>:
+<TestLabel>:
     canvas:
         Color:
             rgba: 0, 0, 1, .2
