@@ -5,7 +5,7 @@ from comics_widgets import BoxLayout, FieldBox, Label, TextButton, ToggleButton
 from comics_widgets import TestBox  # debugging
 from re import match
 
-Builder.load_file('issues_box.kv')
+Builder.load_file('new_issues_box.kv')
 
 
 class IssuesBox(BoxLayout):

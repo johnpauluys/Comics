@@ -1,6 +1,6 @@
 import unittest
 from screen_home import ScreenHome
-from issues_box import IssuesBox, IssueInfoBox
+from new_issues_box import IssuesBox, IssueInfoBox
 
 
 class TestSorting(unittest.TestCase):

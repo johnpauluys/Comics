@@ -108,6 +108,7 @@ class OddIssueInput(MyTextInput):
 class DateInput(MyTextInput):
 
     date_valid = BooleanProperty(False)
+    # TODO find a way to not use a status_bar here (look at inheritance)
     status_bar = ObjectProperty()
     error_status = "Date format not valid. Use any of the following: \"DD/MM/YYYY\", \"MM/YYY\", \"YYYY\""
 
@@ -166,6 +167,7 @@ class PredictiveTextInput(MyTextInput):
     """" TextInput class that make use of suggestion_text"""
 
     current_suggested_word = StringProperty()
+    string_ending = StringProperty(' ')
 
     def suggest_text(self, db_cursor, db_table, table_field):
         """ Display suggested text """
@@ -226,10 +228,10 @@ class PredictiveTextInput(MyTextInput):
             # create a sorted list from possible words and select the longest
             return sorted([word[0] for word in suggestions], key=len)[-1]
 
-    def complete_string(self, ending=' '):
+    def complete_string(self):
         """ If suggested text is available, hitting enter will update text string """
         if self.text and self.current_suggested_word:
-            self.text = self.text[:self.last_word_index()] + self.current_suggested_word + ending
+            self.text = self.text[:self.last_word_index()] + self.current_suggested_word + self.string_ending
             self.current_suggested_word = ''
 
     def last_word_index(self):
@@ -380,7 +382,7 @@ class StatusBar(FieldBox):
     current_status = ObjectProperty()
 
     def set_status(self, status_msg, msg_type='hint'):
-        print('{}: setting status: {}'.format(self.__class__.__name__, status_msg))
+        # print('{}: setting status: {}'.format(self.__class__.__name__, status_msg))
 
         if msg_type == 'normal':
             self.current_status.text = ''
@@ -402,7 +404,7 @@ class StatusBar(FieldBox):
 
     def clear_status(self):
         """ Clear status """
-        print('{}: clearing status'.format(self.__class__.__name__))
+        # print('{}: clearing status'.format(self.__class__.__name__))
         self.current_status.text = ''
 
     def confirm(self, question, callback, decline='no', confirm='yes'):

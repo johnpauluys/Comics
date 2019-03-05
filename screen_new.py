@@ -1,3 +1,5 @@
+# screen_new_py
+
 from kivy.lang import Builder
 from kivy.properties import BooleanProperty, DictProperty, ListProperty, NumericProperty, ObjectProperty, StringProperty
 
@@ -6,7 +8,8 @@ from re import match
 
 from comics_widgets import AnnualsEditionBox, ComicsScreen, IssueNoteBox,\
                            IssueToggleButton, OtherEditionBox, SpecialIssueNoteInputBox
-from issues_box import IssuesBox
+from new_issues_box import IssuesBox
+from new_form_box import NewFormBox
 
 Builder.load_file('screen_new.kv')
 
@@ -55,10 +58,12 @@ class ScreenNew(ComicsScreen):
         print("{}: series marked as ongoing".format(instance.__class__.__name__)) if value else None
 
     def on_group_chain(self, instance, value):
+        # TODO this function can be removed when new_form_box is done
         """ Update grouping text to show current selected group(s) """
         self.grouping_text = ' - '.join(value)
 
     def set_grouping_info(self, cur, group_name_field):
+        # TODO this function can be removed when new_form_box is done
         """ Set grouping info list to represent grouping chain """
 
         # create a list text from group_name_field, before clearing it
@@ -80,12 +85,13 @@ class ScreenNew(ComicsScreen):
                 self.group_chain.append(g)
 
     def check_group_exists(self, cur, group_name):
+        # TODO this function can be removed when new_form_box is done
         """ Check whether entered group name exists in data base """
         # check database for group and return result
         return cur.execute("SELECT * FROM GROUPS WHERE name IS '{}' COLLATE NOCASE".format(group_name)).fetchone()
 
     def create_group_chain(self, cur, group_info):
-
+        # TODO this function can be removed when new_form_box is done
         # set group_name as group_chain's first value
         group_chain = [group_info[1]]
         # and set previous chain to current group's parent

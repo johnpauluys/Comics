@@ -121,6 +121,7 @@
 #    on_release: _other_publisher_text.focus = True if not root.publisher_count and _other_publisher_toggle.state == 'down' and _other_publisher_text else False
 
 <PredictiveTextInput>:
+    string_ending: ' '
     text_validate_unfocus: False
     on_focus: self.suggestion_text = '  '; self.current_suggested_word = ''
     on_text_validate: self.complete_string() if self.current_suggested_word else None

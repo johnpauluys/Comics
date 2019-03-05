@@ -6,6 +6,7 @@
         disabled: True if root.info_window_status == 'open' else False
         Label:
             text: 'Enter issues'
+            size_hint_y: 1
         TextInput:
             id: _issues_text
             on_text_validate: root.load_issues(_issues_text.text) if self.text else None
