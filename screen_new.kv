@@ -1,62 +1,58 @@
 # new_issues_box.kv
 #: kivy 1.10.1
+#: import NewFormBox comics_widgets.new_form_box
+#: import IssuesBox comics_widgets.new_issues_box
+#: import AnnualsBox comics_widgets.new_annuals_box
 #: import datetime datetime
 
 <ScreenNew>:
     on_enter: _status_bar.set_status("Start by selecting one or more publisher(s).")
     on_pre_enter: root.reset_screen()
     status_bar: _status_bar
-
-#    ScreenTitle:
-#        id: _screen_title
-#        pos_hint: {'top': 1}
-#        text: "Holger's Comic Collection "
     NavBox:
         id: _nav_box
         scr: 'new'
-        Button:
-            size_hint_y: 1
-            background_color: 1, 1, 1, 1
-            background_normal : ''
-            font_size: sp(15)
-            text: 'DEBUGGING: print form data'
-            on_press: print(_form_box.form_data)
     ScreenContainer:
-        id: _screen_content
+        canvas:
+            Color:
+                rgba: 0, .2, .1 , .2
+            Rectangle:
+                pos: self.pos
+                size: self.size
+        id: _screen_content  # id used for calculating widget sizes
         padding: dp(50), dp(10)
         pos: 0, _status_bar.top
-        height: root.height - (2 * _status_bar.height + _nav_box.height)
+        height: root.height - (_status_bar.height + _nav_box.height + _nav_box.padding[1])
         disabled: True if _status_bar.screen_disabled else False
-
         BoxLayout:
             NewFormBox:
                 id: _form_box
                 status_bar: _status_bar
-            FieldBox:
-                FieldLabel:
-                    id: _editions_label
-                    text: "Other Edition(s)"
-                    size_hint_y: 1
-                    valign: 'center'
-                FieldBox:
-            ScrollView:
-                height: self.parent.height - (_editions_label.height + _form_box.height)
-                BoxLayout:
-                    id: _editions_container
-                    _root: root
-                    size_hint_y: None
-                    height: self.minimum_height
+            TestBox:
+                id: _specials_box
+                height: _screen_content.height - (_status_bar.height + _form_box.height)
+                BlueLabel:
+                    text: 'placeholder for special issues'
         BoxLayout:
             IssuesBox:
                 id: _issues_box
+                annuals_box: _annuals_box
                 status_bar: _status_bar
                 screen: root
+                size_hint: 1, .66
+            AnnualsBox:
+                id: _annuals_box
+                issues_box: _issues_box
+                status_bar: _status_bar
+                screen: root
+                form_label: 'Add annuals'
+                size_hint: 1, .33
     BoxLayout:
         padding: dp(10)
         FieldBox:
             StatusBar:
                 id: _status_bar
-            TextButton:
+            Button:
                 id: _submit_btn
                 disabled: True if _status_bar.screen_disabled else False
                 text: 'Submit'

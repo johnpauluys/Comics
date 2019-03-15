@@ -86,12 +86,11 @@
     background_color: 0,0,0,0
     on_state: self.color =  (.2, .7, .9, 1) if self.state == 'down' else (.3, .3, .3, 1)
 
-
 <NavBox@BoxLayout>:
     scr: 'none'
     size_hint_y: None
     height: self.minimum_height
-    padding: dp(10), dp(5)
+    padding: dp(10), dp(10)
     orientation: 'horizontal'
     pos: dp(0), self.parent.top - self.height
     TextButton:
@@ -108,7 +107,6 @@
         on_press: app.switch_screen('screen_new')
 
 <PublisherToggle@ToggleButton>
-#    id: _dc_toggle
     publisher: 'publisher_name'
     file_path: 'images/buttons/' + self.publisher
     background_normal: self.file_path + '_normal.png'
@@ -117,8 +115,6 @@
     background_disabled_down: self.file_path + '_disabled_down.png'
     border: 0, 0, 0, 0
     on_state: self.parent._root.publisher_count += 1 if self.state == 'down' else -1
-#    on_release: self.get_focus_next().focus = True if self.parent._root.publisher_count else False
-#    on_release: _other_publisher_text.focus = True if not root.publisher_count and _other_publisher_toggle.state == 'down' and _other_publisher_text else False
 
 <PredictiveTextInput>:
     string_ending: ' '
@@ -128,7 +124,7 @@
     on_text: self.current_suggested_word = '' if not self.text else self.current_suggested_word
 
 <ScreenButton@Button>:
-    on_release: self.parent._root.manager.load_screen(self.text)
+    on_release: self.parent._root.manager.load_screen(self.text), print('Screenbutton pressed')
 
 <ScreenTitle@Label>
     size_hint: 1, None
@@ -145,6 +141,12 @@
     height: dp(32)
 
 <FieldLabel>:
+    canvas:
+        Color:
+            rgba: .5, 0, .5, .1
+        Rectangle:
+            pos: self.pos
+            size: self.size
     text_size: self.size
     halign: 'right'
     valign: 'center'
@@ -177,12 +179,10 @@
             on_release: root.screen.special_issues.remove(root.issue_code) if _issue_note_text.text.strip() else None
             on_release: root.screen.focus_special_issue(root.container) if self.text else None
 
-<IssueToggleButton>:
+<NewIssueToggleButton>:
     font_size: sp(15)
     color: (.5, .5, .5, 1) if self.state == 'normal' else (.2, .7, .9, 1)
     background_color: (.2, .2, .2, 1) if not self.disabled else (.1, .1, .1, 1)
-#    background_disabled_normal: ''
-#    background_disabled_down: ''
     size_hint: 1, None
     text: str(self.index_in_dict)
 
@@ -208,25 +208,6 @@
         id: _issues_container
         cols: 10
 
-<AnnualsEditionBox>:
-    annuals_container: _annuals_container
-    size_hint_y: None
-    height: self.minimum_height
-    FieldBox:
-        Label:
-            id: _annuals_label
-            size_hint_x: 1
-            text_size: self.width, self.height
-        TextButton:
-            id: _del_btn
-            size: self.texture_size
-            valign: 'center'
-            halign: 'right'
-            text: 'x'
-            on_release: root.remove_edition()
-    GridLayout:
-        id: _annuals_container
-        cols: 5
 
 <StatusBar>:
     current_status: _current_status

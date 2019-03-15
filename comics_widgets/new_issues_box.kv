@@ -1,43 +1,64 @@
 #:kivy 1.10.1
 
 <IssuesBox>:
+    issues_scroller: _issues_scroller
     issues_container: _issues_container
+    size_hint_max_y: self.parent.height
     FieldBox:
         disabled: True if root.info_window_status == 'open' else False
-        Label:
-            text: 'Enter issues'
-            size_hint_y: 1
-        TextInput:
-            id: _issues_text
-            on_text_validate: root.load_issues(_issues_text.text) if self.text else None
-            text_validate_unfocus: True
-            # status_bar
-            default_text: "Enter the number of issues. For ongoing series, add a plus sign, eg. 13+. Enter ranges like \"25-65\", as well as single issues, eg. '0, -1, 1'. Separate with commas."
-            on_focus: root.status_bar.set_status(self.default_text) if self.focus else None
-        Button:
-            text: 'add'
-            disabled: False if _issues_text.text else True
-            on_release: root.load_issues(_issues_text.text) if self.text else None
+        FieldLabel:
+            text: root.form_label
+        FieldBox:
+            TextInput:
+                id: _issues_text
+                on_text_validate: root.load_issues(self.text) if self.text else None
+                text_validate_unfocus: True
+                # status_bar
+                default_text: "Enter the number of issues. For ongoing series, add a plus sign, eg. 13+. Enter ranges like \"25-65\", as well as single issues, eg. '0, -1, 1'. Separate with commas."
+                on_focus: root.status_bar.set_status(self.default_text) if self.focus else None
+            Button:
+                text: 'add'
+                disabled: False if _issues_text.text else True
+                on_release: root.load_issues(_issues_text.text) if self.text else None
     ScrollView:
-        height: root.height - (_issues_text.height + dp(5))
-        BoxLayout:
+        canvas:
+            Color:
+                rgba: 0, 0, 0, 1
+            Line:
+                width: dp(5)
+                rectangle: self.x + 5, self.y + 5, self.width - 10, self.height - 10
+            Color:
+                rgba: (.2, .7, .9, .5)
+            Line:
+                width: dp(1)
+                rectangle: self.x + 2.5, self.y + 2.5 , self.width - 5, self.height - 5
+        id: _issues_scroller
+        size_hint: 1, 1
+        padding: (dp(7.5), dp(15))
+        IssuesContainer:
             id: _issues_container
-            _root: root
             size_hint: 1, None
             height: self.minimum_height
-            padding: dp(5)
+
+<IssuesContainer>
+    padding: (dp(7.5), dp(15))
+
+<IssueRowBox>
+    orientation: 'horizontal'
+    size_hint: 1, None
+    height: dp(20)
+    padding: dp(5), dp(0)
 
 <IssueSelector>
-    size_hint_x: 1
     TextInput:
         id: _select_range_input
         text_validate_unfocus: False
         focus: True
-        size_hint: 1, 1
         on_text_validate: root.select_issue_range(self.text) if self.text else None
     Button:
         text: 'select range'
         disabled: False if _select_range_input.text else True
+        valign: 'center'
         on_release: root.select_issue_range(_select_range_input.text)
     Button:
         text: 'all'
@@ -47,12 +68,6 @@
         on_release: root.deselect_all_issues()
 
 <IssueRowBox>
-#    canvas:
-#        Color:
-#            rgba: 0, 1, 0 , .2
-#        Rectangle:
-#            pos: self.pos
-#            size: self.size
     orientation: 'horizontal'
     size_hint: 1, None
     height: dp(20)
@@ -88,20 +103,20 @@
         AddExtraButton:
             id: _add_copy_button
             issue_info_container: root
-#            extra_type: 'copy' NOT NEEDED as it is the default. leaving this here to avoid confusion
+# NOTE      extra_type: 'copy' NOT NEEDED as it is the default. leaving this here to avoid confusion
         AddExtraButton:
             id: _add_variant_button
             issue_info_container: root
             extra_type: 'variant'
     FieldBox:
         padding: dp(10), dp(0)
-        height: dp(100)
+        height: dp(64)
         Label:
             id: _notes_label
             text: 'Notes'
             width: dp(105)
             valign: 'top'
-            text_size: self.size
+            text_size: self.size[0], self.parent.height
         TextInput:
             id: _notes_text
             multiline: True
@@ -110,15 +125,12 @@
             on_focus: root.issues_box.status_bar.set_status(self.default_text) if self.focus else None
     FieldBox:
         padding: dp(10), dp(0)
-        height: dp(64)
         valign: 'bottom'
         FieldLabel:
         Button:
-            size_hint_y: .5
             text: 'cancel'
             on_release: root.close_window(root.parent)
         Button:
-            size_hint_y: .5
             text: 'save & close'
             on_release: root.save_changes()
 

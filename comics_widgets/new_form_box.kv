@@ -16,8 +16,7 @@
         FieldLabel:
             text: "Publisher(s)"
             height: dp(50)
-            valign: 'center'
-            on_touch_down: print(root.form_data)
+            valign: 'bottom'
         FieldBox:
             id: _publisher_images
             _root: root
@@ -61,7 +60,6 @@
                 text: 'Other'
                 on_release: _other_publisher_text.focus = True if self.state == 'down' else False
                 on_release: _title_text.focus = True if self.state == 'normal' and root.publisher_count else False
-
     FieldBox:
         FieldLabel:
         FieldBox:
@@ -85,7 +83,6 @@
             text: "Title"
         TextInput:
             id: _title_text
-#                        text_validate_unfocus: False
             on_text_validate: self.get_focus_next().focus = True if self.text else False
             on_focus: root.form_data['title'] = self.text
             # status_bar
@@ -121,7 +118,6 @@
             DateInput:
                 id: _start_date_text
                 status_bar: root.status_bar
-#                            text_validate_unfocus: False
                 on_focus: self.set_date(root.form_data, 'start_date') if (not self.focus and not self.get_focus_previous().focus) and self.text else None
                 on_text_validate: self.set_date(root.form_data, 'start_date')
                 # status_bar
@@ -133,7 +129,6 @@
             DateInput:
                 id: _end_date_text
                 status_bar: root.status_bar
-#                            text_validate_unfocus: False
                 disabled: True if root.ongoing_series or not _start_date_text.text else False
                 on_focus: self.set_date(root.form_data, 'end_date') if (not self.focus and not self.get_focus_previous().focus) and self.text else None
                 on_text_validate: self.set_date(root.form_data, 'end_date')
@@ -147,14 +142,12 @@
         FieldBox:
             PredictiveTextInput:
                 id: _group_text
-#                            text_validate_unfocus: False
                 on_text: self.suggest_text(app.db_cursor(), 'GROUPS', 'name') if self.text else None
                 on_text: self.current_suggested_word = '' if not self.text else self.current_suggested_word
                 string_ending: ''
                 on_text_validate: self.complete_string() if self.current_suggested_word else None
                 on_text_validate: root.set_grouping_info(app.db_cursor(), self) if not self.current_suggested_word and self.text else None
                 on_text_validate: self.get_focus_next().focus = True if not self.text else False
-#                        on_focus: root.data['grouping'] = self.text
                 # status_bar
                 on_focus: root.status_bar.set_status("Enter grouping info if needed. Multiple groups may be entered separated by commas, eg: 'Batman, Robin'. Order matters.") if self.focus else root.status_bar.clear_status()
             Button:
@@ -165,9 +158,6 @@
                 text: 'clear last'
                 disabled: True if len(root.group_chain) == 0 else False
                 on_release: del root.group_chain[-1]; _group_text.text = ''
-#            Button:
-#                text: 'test'
-#                on_release: root.set_group(app, app.db_cursor())
     FieldBox:
         height: self.minimum_height
         FieldLabel:

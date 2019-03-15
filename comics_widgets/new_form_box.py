@@ -1,11 +1,8 @@
 from kivy.lang import Builder
-from kivy.graphics import Color, Rectangle
-from kivy.properties import DictProperty, ListProperty, NumericProperty, ObjectProperty, OptionProperty, StringProperty
-from comics_widgets import BoxLayout, FieldBox, Label, TextButton, ToggleButton
-from comics_widgets import TestBox  # debugging
-from re import match
+from kivy.properties import ListProperty, NumericProperty, ObjectProperty, OptionProperty, StringProperty
+from comics_widgets.comics_widgets import BoxLayout
 
-Builder.load_file('new_form_box.kv')
+Builder.load_file('comics_widgets/new_form_box.kv')
 
 
 class NewFormBox(BoxLayout):
@@ -27,7 +24,6 @@ class NewFormBox(BoxLayout):
     status_bar = ObjectProperty()
 
     form_data = {}
-
 
     def on_group_chain(self, instance, value):
         """ Update grouping text to show current selected group(s) """
@@ -75,21 +71,3 @@ class NewFormBox(BoxLayout):
             group_chain.insert(0, parent_info[1])
 
         return group_chain
-
-# SUBMIT FUNCTIONS
-
-    def set_group(self, app, cur):
-        """ Prepare data['grouping'] for database """
-        # set main group, which has no parent
-        parent = None
-        for g in self.group_chain:
-            # query database to see if group exists
-            current = cur.execute("SELECT * FROM GROUPS WHERE name IS '{}'".format(g)).fetchone()
-            if current:
-                # if it exists, nothing has to happen, except that it now becomes a potential parent
-                parent = current[0]
-            else:
-                # create database entry if group doesn't exist
-                parent = app.add_new_group(cur, g, parent)
-        # the last group_name should now be the potential parent and its is value gets returned
-        return parent

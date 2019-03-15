@@ -3,7 +3,7 @@ from kivy.properties import DictProperty, ListProperty, ObjectProperty
 
 from json import loads
 
-from comics_widgets import ComicListWidget, ComicsScreen
+from comics_widgets.comics_widgets import ComicListWidget, ComicsScreen
 
 Builder.load_file('screen_home.kv')
 
