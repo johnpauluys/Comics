@@ -9,6 +9,8 @@
     other_publisher_toggle: _other_publisher_toggle
     other_publisher_text: _other_publisher_text
 
+    comic_title: _title_text.text
+
     size_hint_y: None
     height: self.minimum_height
     FieldBox:
@@ -81,31 +83,19 @@
     FieldBox:
         FieldLabel:
             text: "Title"
-        TextInput:
-            id: _title_text
-            on_text_validate: self.get_focus_next().focus = True if self.text else False
-            on_focus: root.form_data['title'] = self.text
-            # status_bar
-            on_focus: root.status_bar.set_status("Enter the comic's title.") if self.focus else root.status_bar.clear_status()
-
-    FieldBox:
-        FieldLabel:
-            text: "Format"
         FieldBox:
-            PredictiveTextInput:
-                id: _format_text
-                on_text: self.suggest_text(app.db_cursor(), 'FORMATS', 'format') if self.text else None
-                on_text_validate: self.get_focus_next().focus = True if not self.current_suggested_word else False
-                on_focus: root.form_data['format'] = self.text if self.text else None
+            TextInput:
+                id: _title_text
+                on_text_validate: self.get_focus_next().focus = True if self.text else False
+                on_focus: root.form_data['title'] = self.text
                 # status_bar
-                on_focus: root.status_bar.set_status("Enter the format of the standard issues.") if self.focus else root.status_bar.clear_status()
-
-            FieldLabel:
+                on_focus: root.status_bar.set_status("Enter the comic's title.") if self.focus else root.status_bar.clear_status()
+            InnerFieldLabel:
                 text: "Volume #"
             TextInput:
                 id: _vol_text
                 size_hint_x: None
-                width: dp(65)
+                width: dp(48)
                 on_focus: root.form_data['volume'] = self.text
                 on_text_validate: self.get_focus_next().focus = True
                 # status_bar
@@ -113,28 +103,41 @@
 
     FieldBox:
         FieldLabel:
-            text: "Run dates"
+            text: "Format"
         FieldBox:
-            DateInput:
-                id: _start_date_text
-                status_bar: root.status_bar
-                on_focus: self.set_date(root.form_data, 'start_date') if (not self.focus and not self.get_focus_previous().focus) and self.text else None
-                on_text_validate: self.set_date(root.form_data, 'start_date')
+            PredictiveTextInput:
+                id: _format_text
+                size_hint_x: None
+                width: dp(128)
+                on_text: self.suggest_text(app.db_cursor(), 'FORMATS', 'format') if self.text else None
+                on_text_validate: self.get_focus_next().focus = True if not self.current_suggested_word else False
+                on_focus: root.form_data['format'] = self.text if self.text else None
                 # status_bar
-                default_text: "Enter the date in one of these formats: \"DD/MM/YYYY\", \"MM/YYYY\" or just \"YYYY\"."
-                on_focus: root.status_bar.set_status(self.default_text) if self.focus else root.status_bar.clear_status()
-            FieldLabel:
-                text: "to"
-                halign: 'center'
-            DateInput:
-                id: _end_date_text
-                status_bar: root.status_bar
-                disabled: True if root.ongoing_series or not _start_date_text.text else False
-                on_focus: self.set_date(root.form_data, 'end_date') if (not self.focus and not self.get_focus_previous().focus) and self.text else None
-                on_text_validate: self.set_date(root.form_data, 'end_date')
-                # status_bar
-                #default_text: "Enter the date in one of these formats: \"DD/MM/YYYY\", \"MM/YYYY\" or just \"YYYY\"."
-                on_focus: root.status_bar.set_status(_start_date_text.default_text) if self.focus else root.status_bar.clear_status()
+                on_focus: root.status_bar.set_status("Enter the format of the standard issues.") if self.focus else root.status_bar.clear_status()
+
+            InnerFieldLabel:
+                text: "Run dates"
+            FieldBox:
+                DateInput:
+                    id: _start_date_text
+                    status_bar: root.status_bar
+                    on_focus: self.set_date(root.form_data, 'start_date') if (not self.focus and not self.get_focus_previous().focus) and self.text else None
+                    on_text_validate: self.set_date(root.form_data, 'start_date')
+                    # status_bar
+                    default_text: "Enter the date in one of these formats: \"DD/MM/YYYY\", \"MM/YYYY\" or just \"YYYY\"."
+                    on_focus: root.status_bar.set_status(self.default_text) if self.focus else root.status_bar.clear_status()
+                InnerFieldLabel:
+                    text: "to"
+                    halign: 'center'
+                DateInput:
+                    id: _end_date_text
+                    status_bar: root.status_bar
+                    disabled: True if root.ongoing_series or not _start_date_text.text else False
+                    on_focus: self.set_date(root.form_data, 'end_date') if (not self.focus and not self.get_focus_previous().focus) and self.text else None
+                    on_text_validate: self.set_date(root.form_data, 'end_date')
+                    # status_bar
+                    #default_text: "Enter the date in one of these formats: \"DD/MM/YYYY\", \"MM/YYYY\" or just \"YYYY\"."
+                    on_focus: root.status_bar.set_status(_start_date_text.default_text) if self.focus else root.status_bar.clear_status()
 
     FieldBox:
         FieldLabel:
@@ -166,17 +169,14 @@
             text: root.grouping_text if root.grouping_text else ' '
 
     FieldBox:
-        height: dp(100)
+        height: dp(64)
         FieldLabel:
-            height: dp(100)
             valign: 'top'
             text: 'Notes'
         TextInput:
             id: _notes_text
-            height: dp(100)
             multiline: True
             on_text: root.form_data['notes'] = self.text.strip() if self.text else None
-            on_text_validate: _issue_number_text.focus = True if not self.text else False
             # status_bar
             default_text: "Enter any kind of note you wish. That's some real freedom, man!"
             on_focus: root.status_bar.set_status(self.default_text) if self.focus else root.status_bar.clear_status()

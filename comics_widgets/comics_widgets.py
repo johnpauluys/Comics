@@ -55,6 +55,10 @@ class FieldLabel(Label):
     pass
 
 
+class InnerFieldLabel(Label):
+    pass
+
+
 class TextButton(Button):
     pass
 

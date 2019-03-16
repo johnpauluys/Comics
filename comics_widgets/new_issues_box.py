@@ -18,6 +18,8 @@ class IssuesBox(BoxLayout):
 
     # local properties
     form_label = StringProperty('Enter issues')
+    default_text = "Enter the number of issues. For ongoing series, add a plus sign, eg. 13+. Enter ranges " \
+                   "like \"25-65\", as well as single issues, eg. '0, -1, 1'. Separate with commas."
     issues_scroller = ObjectProperty()
     info_window_status = OptionProperty('close', options=['open', 'close'])
     item_counter = NumericProperty(0)

@@ -1,6 +1,7 @@
 # new_issues_box.kv
 #: kivy 1.10.1
 #: import NewFormBox comics_widgets.new_form_box
+#: import SpecialsBox comics_widgets.specials_box
 #: import IssuesBox comics_widgets.new_issues_box
 #: import AnnualsBox comics_widgets.new_annuals_box
 #: import datetime datetime
@@ -13,40 +14,47 @@
         id: _nav_box
         scr: 'new'
     ScreenContainer:
-        canvas:
-            Color:
-                rgba: 0, .2, .1 , .2
-            Rectangle:
-                pos: self.pos
-                size: self.size
+#        canvas:
+#            Color:
+#                rgba: 0, .2, .1 , .2
+#            Rectangle:
+#                pos: self.pos
+#                size: self.size
         id: _screen_content  # id used for calculating widget sizes
-        padding: dp(50), dp(10)
         pos: 0, _status_bar.top
         height: root.height - (_status_bar.height + _nav_box.height + _nav_box.padding[1])
         disabled: True if _status_bar.screen_disabled else False
         BoxLayout:
+            padding: dp(25), dp(10), dp(6.25), dp(10)
             NewFormBox:
                 id: _form_box
                 status_bar: _status_bar
-            TestBox:
+            BlueLabel:
+                text: 'Special Edition(s)'
+            SpecialsBox:
                 id: _specials_box
+                issues_box_issues_text: _issues_box.ids._issues_text
+                status_bar: _status_bar
+                comic_title: _form_box.comic_title
                 height: _screen_content.height - (_status_bar.height + _form_box.height)
-                BlueLabel:
-                    text: 'placeholder for special issues'
         BoxLayout:
+            padding: dp(6.25), dp(10), dp(25), dp(10)
+            BlueLabel:
+                text: 'Issues and Annuals'
             IssuesBox:
                 id: _issues_box
                 annuals_box: _annuals_box
                 status_bar: _status_bar
                 screen: root
-                size_hint: 1, .66
+                size_hint: 1, 1
+                size_hint_max_y: self.parent.height - _annuals_box.height
             AnnualsBox:
                 id: _annuals_box
                 issues_box: _issues_box
                 status_bar: _status_bar
                 screen: root
-                form_label: 'Add annuals'
-                size_hint: 1, .33
+                size_hint: 1, None
+                height: _specials_box.specials_scroller.height
     BoxLayout:
         padding: dp(10)
         FieldBox:

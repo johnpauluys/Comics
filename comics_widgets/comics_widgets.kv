@@ -20,7 +20,18 @@
     spacing: dp(2)
 
 <ScrollView>
-    size_hint: 1, None
+    canvas:
+        Color:
+            rgba: 0, 0, 0, 1
+        Line:
+            width: dp(5)
+            rectangle: self.x + 5, self.y + 5, self.width - 10, self.height - 10
+        Color:
+            rgba: (.2, .7, .9, .5)
+        Line:
+            width: dp(1)
+            rectangle: self.x + 2.5, self.y + 2.5 , self.width - 5, self.height - 5
+    padding: (dp(7.5), dp(15))
     scroll_timeout: 1500
 
 <Label>:
@@ -95,15 +106,17 @@
     pos: dp(0), self.parent.top - self.height
     TextButton:
         id: home_button
+        font_name: 'fonts/ComicBook.otf'
         font_size: sp(20)
         color: (.2, .7, .9, 1) if root.scr == 'home' else (.6,.6,.6,1)
         text: "Home"
         on_press: app.switch_screen('screen_home')
     TextButton:
         id: add_new_button
+        font_name: 'fonts/ComicBook.otf'
         font_size: sp(20)
         color: (.2, .7, .9, 1) if root.scr == 'new' else (.6,.6,.6,1)
-        text: "Add New Comic"
+        text: "AddNewComic"
         on_press: app.switch_screen('screen_new')
 
 <PublisherToggle@ToggleButton>
@@ -143,16 +156,26 @@
 <FieldLabel>:
     canvas:
         Color:
-            rgba: .5, 0, .5, .1
+            rgba: .5, 0, .3, .1
         Rectangle:
             pos: self.pos
             size: self.size
     text_size: self.size
     halign: 'right'
     valign: 'center'
-    size_hint: .3, 1
+    size_hint: .2, 1
     shorten: True
     shorten_from: 'right'
+
+<InnerFieldLabel>:
+    canvas:
+        Color:
+            rgba: .5, 0, .5, .1
+        Rectangle:
+            pos: self.pos
+            size: self.size
+    size_hint: None, 1
+    halign: 'center'
 
 <IssueNumberInput>
     size_hint_x: None

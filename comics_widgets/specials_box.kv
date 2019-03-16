@@ -1,0 +1,115 @@
+#:kivy 1.10.1
+
+<SpecialsBox>:
+    specials_scroller: _specials_scroller
+    specials_container: _specials_container
+    FieldBox:
+        FieldLabel:
+            text: 'Title'
+        FieldBox:
+            TextInput:
+                id: _title_text
+                on_text_validate: self.get_focus_next().focus = True if self.text else False
+                on_text_validate: root.issues_box_issues_text.focus = True if not self.text else False
+                # status bar
+                default_text: "Enter the special edition title. It's not necessary to include \"{}\".".format(root.comic_title)
+                on_focus: root.status_bar.set_status(self.default_text) if self.focus else root.status_bar.clear_status()
+
+            InnerFieldLabel:
+                text: 'Issues'
+            TextInput:
+                id: _issues_text
+                size_hint_x: None
+                width: dp(48)
+                on_focus: self.text = '1' if not self.text else self.text
+                on_text_validate: self.get_focus_next().focus = True
+                # status_bar
+                on_focus: root.status_bar.set_status("Enter the number of issues.") if self.focus else root.status_bar.clear_status()
+    FieldBox:
+        FieldLabel:
+            text: "Format"
+        FieldBox:
+            PredictiveTextInput:
+                id: _fmt_text
+                size_hint_x: None
+                width: dp(128)
+                on_text: self.suggest_text(app.db_cursor(), 'FORMATS', 'format') if self.text else None
+                on_text_validate: self.get_focus_next().focus = True if not self.current_suggested_word else False
+                # status_bar
+                on_focus: root.status_bar.set_status("Enter the format of special edition.") if self.focus else root.status_bar.clear_status()
+            InnerFieldLabel:
+                text: "Run dates"
+            FieldBox:
+                DateInput:
+                    id: _start_date_text
+                    on_text_validate: self.get_focus_next().focus = True
+                    # status_bar
+                    default_text: "Enter the date in one of these formats: \"DD/MM/YYYY\", \"MM/YYYY\" or just \"YYYY\"."
+                    on_focus: root.status_bar.set_status(self.default_text) if self.focus else root.status_bar.clear_status()
+                InnerFieldLabel:
+                    text: "to"
+                    halign: 'center'
+                DateInput:
+                    id: _end_date_text
+                    disabled: True if not _start_date_text.text else False
+                    on_text_validate: self.get_focus_next().focus = True
+                    # status_bar
+                    #default_text: "Enter the date in one of these formats: \"DD/MM/YYYY\", \"MM/YYYY\" or just \"YYYY\"."
+                    on_focus: root.status_bar.set_status(_start_date_text.default_text) if self.focus else root.status_bar.clear_status()
+    FieldBox:
+        FieldLabel:
+            text: 'Notes'
+        FieldBox:
+            TextInput:
+                id: _notes_text
+                multiline: True
+                # status_bar
+                default_text: "Enter any kind of note you wish. That's some real freedom, man!"
+                on_focus: root.status_bar.set_status(self.default_text) if self.focus else root.status_bar.clear_status()
+            Button:
+                disabled: False if _title_text.text else True
+                text: 'add'
+                on_release: root.add_special(_title_text.text, _issues_text.text, _fmt_text.text,_start_date_text.text, _end_date_text.text, _notes_text.text)
+            Button:
+                text: 'test'
+                on_release: print(root.specials_data)
+    ScrollView:
+        id: _specials_scroller
+        BoxLayout:
+            id: _specials_container
+            padding: dp(15), dp(7.5)
+            size_hint: 1, None
+            height: self.minimum_height
+
+
+<SpecialEdition>:
+    TestLabel:
+        size_hint_x: .50
+        halign: 'left'
+        valign: 'center'
+        text_size: self.size[0], None
+        text: root.title
+    FieldBox:
+        TestLabel:
+            size_hint_x: .2
+            text_size: self.size[0], None
+            text: str(int(root.issues)) + '-shot' if root.issues == 1 else str(int(root.issues)) + ' issues' if root.issues else ''
+        TestLabel:
+            size_hint_x: .2
+            text: root.fmt
+        TestLabel:
+            size_hint_x: .4
+            text: root.start_date if not root.end_date else '{}-{}'.format(root.start_date, root.end_date)
+        TextButton:
+            size_hint_x: .2
+            text: 'read note' if root.notes else ''
+            on_release: print(root.notes)
+    TextButton:
+        text: 'x'
+        on_release: root.delete_special()
+
+
+#issues = NumericProperty('0')
+#start_date = StringProperty('n/a')
+#end_date = StringProperty('n/a')
+#notes = StringProperty('no notes')

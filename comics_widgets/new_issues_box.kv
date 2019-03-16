@@ -3,7 +3,6 @@
 <IssuesBox>:
     issues_scroller: _issues_scroller
     issues_container: _issues_container
-    size_hint_max_y: self.parent.height
     FieldBox:
         disabled: True if root.info_window_status == 'open' else False
         FieldLabel:
@@ -14,27 +13,14 @@
                 on_text_validate: root.load_issues(self.text) if self.text else None
                 text_validate_unfocus: True
                 # status_bar
-                default_text: "Enter the number of issues. For ongoing series, add a plus sign, eg. 13+. Enter ranges like \"25-65\", as well as single issues, eg. '0, -1, 1'. Separate with commas."
-                on_focus: root.status_bar.set_status(self.default_text) if self.focus else None
+
+                on_focus: root.status_bar.set_status(root.default_text) if self.focus else None
             Button:
                 text: 'add'
                 disabled: False if _issues_text.text else True
                 on_release: root.load_issues(_issues_text.text) if self.text else None
     ScrollView:
-        canvas:
-            Color:
-                rgba: 0, 0, 0, 1
-            Line:
-                width: dp(5)
-                rectangle: self.x + 5, self.y + 5, self.width - 10, self.height - 10
-            Color:
-                rgba: (.2, .7, .9, .5)
-            Line:
-                width: dp(1)
-                rectangle: self.x + 2.5, self.y + 2.5 , self.width - 5, self.height - 5
         id: _issues_scroller
-        size_hint: 1, 1
-        padding: (dp(7.5), dp(15))
         IssuesContainer:
             id: _issues_container
             size_hint: 1, None

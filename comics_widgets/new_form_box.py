@@ -18,6 +18,8 @@ class NewFormBox(BoxLayout):
     publisher_count = NumericProperty(0)
     ongoing_series = OptionProperty(0, options=[0, 1])
 
+    comic_title = StringProperty()
+
     group_chain = ListProperty()
     grouping_text = StringProperty()
 

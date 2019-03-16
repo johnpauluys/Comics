@@ -1,4 +1,4 @@
-from comics_widgets.comics_widgets import Label, NumericProperty, OptionProperty
+from comics_widgets.comics_widgets import Label, NumericProperty, OptionProperty, StringProperty
 from comics_widgets.new_issues_box import IssuesBox, IssueRowBox, NewIssueToggleButton
 from re import match
 
@@ -6,6 +6,9 @@ from re import match
 class AnnualsBox(IssuesBox):
 
     # local properties
+    form_label = StringProperty('Add annuals')
+    default_text = "Enter year range(s). Entering more complex ranges is also possible, eg. " \
+                   "1981-1984, 1-3, 1988, 4, 1990-1995"
     info_window_status = OptionProperty('close', options=['open', 'close'])
     item_counter = NumericProperty(0)
 
